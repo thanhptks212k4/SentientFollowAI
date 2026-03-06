@@ -35,14 +35,14 @@ IOU_THRESHOLD = 0.45
 PERSON_CLASS_ID = 0
 
 # Performance Settings
-SKIP_FRAMES = 1
-TARGET_FPS = 15
+SKIP_FRAMES = 2  # Skip 2 frames → AI runs every 3rd frame (~10 FPS at 30 FPS camera)
+TARGET_FPS = 10  # Lower target FPS to reduce CPU load
 ENABLE_CPU_STABILIZATION = True
 
 # Tracking Settings
 TRACK_THRESH = 0.5  # High confidence threshold for tracking
-TRACK_BUFFER = 30   # Frames to keep lost tracks
-MATCH_THRESH = 0.8  # IoU threshold for matching
+TRACK_BUFFER = 90   # Keep lost tracks for 90 frames (3 seconds at 30 FPS)
+MATCH_THRESH = 0.7  # Lower threshold for better matching when moving fast
 
 # ============================================================================
 # THREADED CAMERA STREAM
@@ -66,6 +66,11 @@ class ThreadedCamera:
         
         self.frames_read = 0
         self.frames_dropped = 0
+        
+        # Camera FPS tracking
+        self.camera_fps = 0
+        self.fps_frame_count = 0
+        self.fps_start_time = time.time()
         
         if not self.cap.isOpened():
             raise RuntimeError(f"Cannot open camera {src}")
@@ -94,10 +99,20 @@ class ThreadedCamera:
                     self.frames_dropped += 1
                 self.frame = frame
                 self.frames_read += 1
+                self.fps_frame_count += 1
+                
+                # Calculate Camera FPS
+                elapsed = time.time() - self.fps_start_time
+                if elapsed >= 1.0:
+                    self.camera_fps = self.fps_frame_count / elapsed
+                    self.fps_frame_count = 0
+                    self.fps_start_time = time.time()
     
     def read(self):
         with self.lock:
-            return self.frame.copy() if self.frame is not None else None
+            frame = self.frame.copy() if self.frame is not None else None
+            cam_fps = self.camera_fps
+        return frame, cam_fps
     
     def stop(self):
         self.running = False
@@ -167,7 +182,7 @@ class ONNXDetector:
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         sess_options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-        sess_options.intra_op_num_threads = 2
+        sess_options.intra_op_num_threads = 1  # Reduce to 1 thread for lower CPU
         sess_options.inter_op_num_threads = 1
         
         print(f"[ONNX] Loading model: {model_path}")
@@ -265,7 +280,9 @@ def main():
     print("Person Detection with ByteTrack Tracking")
     print("="*70)
     print(f"Model: {MODEL_PATH}")
-    print(f"Target FPS: {TARGET_FPS}")
+    print(f"Target AI FPS: ~{TARGET_FPS} (SKIP_FRAMES={SKIP_FRAMES})")
+    print(f"Track Buffer: {TRACK_BUFFER} frames (~{TRACK_BUFFER/30:.1f}s)")
+    print(f"Match Threshold: {MATCH_THRESH} (optimized for fast movement)")
     print("="*70 + "\n")
     
     # Initialize components
@@ -298,10 +315,17 @@ def main():
     print("[Tracker] ByteTrack initialized")
     
     print("\nStarting detection loop...")
-    print("Controls:")
+    print("Optimizations:")
+    print(f"  - AI runs every {SKIP_FRAMES + 1} frames (~{30/(SKIP_FRAMES+1):.0f} FPS) to save CPU")
+    print(f"  - Track buffer: {TRACK_BUFFER} frames for stable tracking")
+    print(f"  - Single thread inference for lower CPU usage")
+    print("\nFeatures:")
+    print("  - AUTO-LOCK: First detected person will be locked automatically")
+    print("  - All persons are tracked with unique IDs")
+    print("\nControls:")
     print("  'q' - Quit")
-    print("  'l' - Lock target (simulate voice command)")
-    print("  'u' - Unlock target")
+    print("  'l' - Lock target (manual)")
+    print("  'u' - Unlock target (allows re-lock)")
     print("  's' - Show stats")
     print("="*70 + "\n")
     
@@ -312,13 +336,21 @@ def main():
     inference_times = deque(maxlen=30)
     sleep_times = deque(maxlen=30)
     
+    # AI FPS tracking
+    ai_fps = 0
+    ai_frame_count = 0
+    ai_start_time = time.time()
+    
+    # Auto-lock flag
+    auto_locked = False
+    
     target_frame_time = 1.0 / TARGET_FPS if ENABLE_CPU_STABILIZATION else 0
     
     try:
         while True:
             loop_start = time.time()
             
-            frame = camera.read()
+            frame, camera_fps = camera.read()
             if frame is None:
                 continue
             
@@ -342,19 +374,54 @@ def main():
             # Post-processing
             detections = detector.postprocess(predictions, orig_shape, ratio, pad)
             
-            # Tracking
+            # Update AI FPS (only when inference runs)
+            ai_frame_count += 1
+            ai_elapsed = time.time() - ai_start_time
+            if ai_elapsed >= 1.0:
+                ai_fps = ai_frame_count / ai_elapsed
+                ai_frame_count = 0
+                ai_start_time = time.time()
+            
+            # Tracking - Always update tracker to get all tracks
             if target_locker.is_locked:
-                # Update tracker and get only locked target
+                # Update tracker and get locked target
                 target = target_locker.update(detections)
+                # Also get all tracks for display
+                all_tracks = tracker.update(detections)
+            else:
+                # Not locked - get all tracks
+                all_tracks = tracker.update(detections)
+                target = None
                 
-                if target is not None:
-                    # Draw locked target
-                    bbox = target['bbox']
-                    x1, y1, x2, y2 = bbox
-                    x_c = (x1 + x2) // 2
-                    y_c = (y1 + y2) // 2
-                    
-                    # Draw bounding box (GREEN for locked target)
+                # Auto-lock first person detected
+                if not auto_locked and len(all_tracks) > 0:
+                    # Lock the first tracked person
+                    first_track = all_tracks[0]
+                    # Convert track to detection format for locking
+                    first_detection = {
+                        'bbox': first_track['bbox'],
+                        'confidence': first_track['score'],
+                        'class_id': PERSON_CLASS_ID
+                    }
+                    if target_locker.lock_target([first_detection]):
+                        auto_locked = True
+                        target = target_locker.update([])
+                        print(f"\n[AUTO-LOCK] Locked first person - ID:{first_track['track_id']}")
+            
+            # Draw all tracked persons
+            for track in all_tracks:
+                tid = track['track_id']
+                bbox = track['bbox']
+                score = track['score']
+                x1, y1, x2, y2 = bbox
+                x_c = (x1 + x2) // 2
+                y_c = (y1 + y2) // 2
+                
+                # Check if this is the locked target
+                is_locked_target = (target is not None and tid == target['track_id'])
+                
+                if is_locked_target:
+                    # Draw locked target (GREEN with thick border)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
                     
                     # Draw center crosshair
@@ -363,7 +430,7 @@ def main():
                     cv2.line(frame, (x_c, y_c - 15), (x_c, y_c + 15), (0, 0, 255), 2)
                     
                     # Draw label
-                    label = f"TARGET ID:{target['track_id']} ({target['score']:.2f})"
+                    label = f"TARGET ID:{tid} ({score:.2f})"
                     cv2.putText(frame, label, (x1, y1 - 10),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     
@@ -371,35 +438,31 @@ def main():
                     coord_text = f"({x_c}, {y_c})"
                     cv2.putText(frame, coord_text, (x_c + 15, y_c - 15),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                    
-                    # Draw "LOCKED" indicator
-                    cv2.putText(frame, "LOCKED", (10, orig_shape[0] - 20),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                 else:
-                    # Target lost
+                    # Draw other tracked persons (CYAN)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
+                    
+                    # Draw label
+                    label = f"ID:{tid} ({score:.2f})"
+                    cv2.putText(frame, label, (x1, y1 - 10),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+            
+            # Draw status indicator
+            if target_locker.is_locked:
+                if target is not None:
+                    status_text = f"AUTO-LOCKED: ID {target['track_id']}" if auto_locked else f"LOCKED: ID {target['track_id']}"
+                    cv2.putText(frame, status_text, (10, orig_shape[0] - 20),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                else:
                     status = target_locker.get_status()
                     lost_text = f"TARGET LOST ({status['frames_without_target']} frames)"
                     cv2.putText(frame, lost_text, (10, orig_shape[0] - 20),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             else:
-                # Not locked - show all detections
-                for det in detections:
-                    bbox = det['bbox']
-                    conf = det['confidence']
-                    x1, y1, x2, y2 = bbox
-                    
-                    # Draw bounding box (YELLOW for unlocked)
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
-                    
-                    # Draw label
-                    label = f"Person: {conf:.2f}"
-                    cv2.putText(frame, label, (x1, y1 - 10),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-                
-                # Draw "UNLOCKED" indicator
-                if len(detections) > 0:
-                    cv2.putText(frame, "UNLOCKED - Press 'L' to lock", (10, orig_shape[0] - 20),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                if len(all_tracks) > 0:
+                    cv2.putText(frame, f"TRACKING {len(all_tracks)} person(s) - Press 'L' to lock", 
+                               (10, orig_shape[0] - 20),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
             
             # Calculate FPS
             elapsed = time.time() - start_time
@@ -410,8 +473,12 @@ def main():
             
             # Draw performance info
             y_offset = 30
-            cv2.putText(frame, f"FPS: {fps:.1f}", (10, y_offset),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+            cv2.putText(frame, f"Camera FPS: {camera_fps:.1f}", (10, y_offset),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+            
+            y_offset += 30
+            cv2.putText(frame, f"AI FPS: {ai_fps:.1f}", (10, y_offset),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
             
             y_offset += 30
             avg_inference = np.mean(inference_times) if inference_times else 0
@@ -419,20 +486,24 @@ def main():
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             
             y_offset += 25
-            cv2.putText(frame, f"Detections: {len(detections)}", (10, y_offset),
+            cv2.putText(frame, f"Tracks: {len(all_tracks)}", (10, y_offset),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
             
             # Display frame
             cv2.imshow('Person Tracking - ByteTrack', frame)
             
-            # Console output
-            if target_locker.is_locked:
-                target = target_locker.update([])  # Get cached target
-                if target:
+            # Console output (update every 10 frames to reduce overhead)
+            if frame_count % 10 == 0:
+                if target_locker.is_locked and target:
                     x_c = (target['bbox'][0] + target['bbox'][2]) // 2
                     y_c = (target['bbox'][1] + target['bbox'][3]) // 2
                     print(f"\r[LOCKED] Target ID:{target['track_id']} at ({x_c:4d}, {y_c:4d}) | "
-                          f"FPS: {fps:5.1f} | Inf: {avg_inference:4.0f}ms", 
+                          f"Tracks: {len(all_tracks)} | Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | "
+                          f"Inf: {avg_inference:4.0f}ms", 
+                          end='', flush=True)
+                elif len(all_tracks) > 0:
+                    print(f"\r[TRACKING] {len(all_tracks)} person(s) | "
+                          f"Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | Inf: {avg_inference:4.0f}ms", 
                           end='', flush=True)
             
             # CPU Stabilization
@@ -460,6 +531,7 @@ def main():
                 # Unlock target
                 if target_locker.is_locked:
                     target_locker.unlock_target()
+                    auto_locked = False  # Reset auto-lock flag
                     print("\n[Command] Target unlocked")
             elif key == ord('s'):
                 # Show stats
@@ -467,7 +539,8 @@ def main():
                 print(f"\n\n{'='*70}")
                 print("Tracking Statistics:")
                 print(f"{'='*70}")
-                print(f"FPS: {fps:.2f}")
+                print(f"Camera FPS: {camera_fps:.2f}")
+                print(f"AI FPS: {ai_fps:.2f}")
                 print(f"Avg Inference: {np.mean(inference_times):.2f}ms")
                 print(f"Target Locked: {status['is_locked']}")
                 if status['is_locked']:
