@@ -320,12 +320,11 @@ def main():
     print(f"  - Track buffer: {TRACK_BUFFER} frames for stable tracking")
     print(f"  - Single thread inference for lower CPU usage")
     print("\nFeatures:")
-    print("  - AUTO-LOCK: First detected person will be locked automatically")
+    print("  - ALWAYS LOCKED: System always locks a person when detected")
+    print("  - Auto switch to new person if current target is lost")
     print("  - All persons are tracked with unique IDs")
     print("\nControls:")
     print("  'q' - Quit")
-    print("  'l' - Lock target (manual)")
-    print("  'u' - Unlock target (allows re-lock)")
     print("  's' - Show stats")
     print("="*70 + "\n")
     
@@ -340,9 +339,6 @@ def main():
     ai_fps = 0
     ai_frame_count = 0
     ai_start_time = time.time()
-    
-    # Auto-lock flag
-    auto_locked = False
     
     target_frame_time = 1.0 / TARGET_FPS if ENABLE_CPU_STABILIZATION else 0
     
@@ -383,30 +379,41 @@ def main():
                 ai_start_time = time.time()
             
             # Tracking - Always update tracker to get all tracks
-            if target_locker.is_locked:
-                # Update tracker and get locked target
-                target = target_locker.update(detections)
-                # Also get all tracks for display
-                all_tracks = tracker.update(detections)
-            else:
-                # Not locked - get all tracks
-                all_tracks = tracker.update(detections)
-                target = None
-                
-                # Auto-lock first person detected
-                if not auto_locked and len(all_tracks) > 0:
+            all_tracks = tracker.update(detections)
+            
+            # Auto-lock: Always maintain lock when there are people
+            if len(all_tracks) > 0:
+                if not target_locker.is_locked:
                     # Lock the first tracked person
                     first_track = all_tracks[0]
-                    # Convert track to detection format for locking
                     first_detection = {
                         'bbox': first_track['bbox'],
                         'confidence': first_track['score'],
                         'class_id': PERSON_CLASS_ID
                     }
                     if target_locker.lock_target([first_detection]):
-                        auto_locked = True
+                        print(f"\n[AUTO-LOCK] Locked person - ID:{first_track['track_id']}")
+                
+                # Update locked target
+                target = target_locker.update(detections)
+                
+                # If target is lost but there are still people, lock the first one
+                if target is None and len(all_tracks) > 0:
+                    target_locker.unlock_target()  # Force unlock
+                    first_track = all_tracks[0]
+                    first_detection = {
+                        'bbox': first_track['bbox'],
+                        'confidence': first_track['score'],
+                        'class_id': PERSON_CLASS_ID
+                    }
+                    if target_locker.lock_target([first_detection]):
                         target = target_locker.update([])
-                        print(f"\n[AUTO-LOCK] Locked first person - ID:{first_track['track_id']}")
+                        print(f"\n[RE-LOCK] Switched to new person - ID:{first_track['track_id']}")
+            else:
+                # No people detected - unlock
+                if target_locker.is_locked:
+                    target_locker.unlock_target()
+                target = None
             
             # Draw all tracked persons
             for track in all_tracks:
@@ -448,21 +455,17 @@ def main():
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
             
             # Draw status indicator
-            if target_locker.is_locked:
-                if target is not None:
-                    status_text = f"AUTO-LOCKED: ID {target['track_id']}" if auto_locked else f"LOCKED: ID {target['track_id']}"
-                    cv2.putText(frame, status_text, (10, orig_shape[0] - 20),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                else:
-                    status = target_locker.get_status()
-                    lost_text = f"TARGET LOST ({status['frames_without_target']} frames)"
-                    cv2.putText(frame, lost_text, (10, orig_shape[0] - 20),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            if target_locker.is_locked and target is not None:
+                cv2.putText(frame, f"LOCKED: ID {target['track_id']}", (10, orig_shape[0] - 20),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+            elif len(all_tracks) > 0:
+                cv2.putText(frame, f"TRACKING {len(all_tracks)} person(s)", 
+                           (10, orig_shape[0] - 20),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
             else:
-                if len(all_tracks) > 0:
-                    cv2.putText(frame, f"TRACKING {len(all_tracks)} person(s) - Press 'L' to lock", 
-                               (10, orig_shape[0] - 20),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+                cv2.putText(frame, "Waiting for person...", 
+                           (10, orig_shape[0] - 20),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (200, 200, 200), 2)
             
             # Calculate FPS
             elapsed = time.time() - start_time
@@ -519,20 +522,6 @@ def main():
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 break
-            elif key == ord('l'):
-                # Lock target (simulate voice command)
-                if not target_locker.is_locked and len(detections) > 0:
-                    success = target_locker.lock_target(detections)
-                    if success:
-                        print("\n[Command] Target locked!")
-                else:
-                    print("\n[Command] No detections to lock or already locked")
-            elif key == ord('u'):
-                # Unlock target
-                if target_locker.is_locked:
-                    target_locker.unlock_target()
-                    auto_locked = False  # Reset auto-lock flag
-                    print("\n[Command] Target unlocked")
             elif key == ord('s'):
                 # Show stats
                 status = target_locker.get_status()
