@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Models (large files)
+*.pt
+*.onnx
+*.bin
+*.param
+models/*.onnx
+models/*.pt
+
+# Keep INT8 model
+!models/yolov5nu_int8.onnx
+
+# Logs
+*.log
+data/logs/
+
+# Images/Videos
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+
+# Temporary files
+*.tmp
+*.bak
