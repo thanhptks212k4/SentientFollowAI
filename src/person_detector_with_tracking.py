@@ -35,9 +35,7 @@ IOU_THRESHOLD = 0.45
 PERSON_CLASS_ID = 0
 
 # Performance Settings
-SKIP_FRAMES = 2  # Skip 2 frames → AI runs every 3rd frame (~10 FPS at 30 FPS camera)
-TARGET_FPS = 10  # Lower target FPS to reduce CPU load
-ENABLE_CPU_STABILIZATION = True
+AI_INTERVAL = 0.15  # Run AI every 150ms (~6.7 FPS)
 
 # Tracking Settings
 TRACK_THRESH = 0.5  # High confidence threshold for tracking
@@ -280,7 +278,7 @@ def main():
     print("Person Detection with ByteTrack Tracking")
     print("="*70)
     print(f"Model: {MODEL_PATH}")
-    print(f"Target AI FPS: ~{TARGET_FPS} (SKIP_FRAMES={SKIP_FRAMES})")
+    print(f"AI Interval: {AI_INTERVAL*1000:.0f}ms (~{1/AI_INTERVAL:.1f} FPS)")
     print(f"Track Buffer: {TRACK_BUFFER} frames (~{TRACK_BUFFER/30:.1f}s)")
     print(f"Match Threshold: {MATCH_THRESH} (optimized for fast movement)")
     print("="*70 + "\n")
@@ -316,7 +314,7 @@ def main():
     
     print("\nStarting detection loop...")
     print("Optimizations:")
-    print(f"  - AI runs every {SKIP_FRAMES + 1} frames (~{30/(SKIP_FRAMES+1):.0f} FPS) to save CPU")
+    print(f"  - AI runs every {AI_INTERVAL*1000:.0f}ms (~{1/AI_INTERVAL:.1f} FPS) to save CPU")
     print(f"  - Track buffer: {TRACK_BUFFER} frames for stable tracking")
     print(f"  - Single thread inference for lower CPU usage")
     print("\nFeatures:")
@@ -333,29 +331,31 @@ def main():
     frame_count = 0
     start_time = time.time()
     inference_times = deque(maxlen=30)
-    sleep_times = deque(maxlen=30)
     
     # AI FPS tracking
     ai_fps = 0
     ai_frame_count = 0
     ai_start_time = time.time()
     
-    target_frame_time = 1.0 / TARGET_FPS if ENABLE_CPU_STABILIZATION else 0
+    # Time-based AI execution
+    last_ai_time = time.time()
     
     try:
         while True:
-            loop_start = time.time()
+            current_time = time.time()
+            
+            # Cơ chế nhả CPU tránh Busy Waiting
+            if current_time - last_ai_time < AI_INTERVAL:
+                time.sleep(0.01)  # Ngủ 10ms để giảm tải CPU
+                continue
+            
+            last_ai_time = current_time
             
             frame, camera_fps = camera.read()
             if frame is None:
                 continue
             
             frame_count += 1
-            
-            # Skip frames if configured
-            if SKIP_FRAMES > 0 and frame_count % (SKIP_FRAMES + 1) != 0:
-                continue
-            
             orig_shape = frame.shape[:2]
             
             # Preprocessing
@@ -495,8 +495,8 @@ def main():
             # Display frame
             cv2.imshow('Person Tracking - ByteTrack', frame)
             
-            # Console output (update every 10 frames to reduce overhead)
-            if frame_count % 10 == 0:
+            # Console output (update every AI cycle to reduce overhead)
+            if ai_frame_count % 5 == 0:  # Update every 5 AI cycles
                 if target_locker.is_locked and target:
                     x_c = (target['bbox'][0] + target['bbox'][2]) // 2
                     y_c = (target['bbox'][1] + target['bbox'][3]) // 2
@@ -508,15 +508,6 @@ def main():
                     print(f"\r[TRACKING] {len(all_tracks)} person(s) | "
                           f"Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | Inf: {avg_inference:4.0f}ms", 
                           end='', flush=True)
-            
-            # CPU Stabilization
-            if ENABLE_CPU_STABILIZATION:
-                loop_time = time.time() - loop_start
-                sleep_time = target_frame_time - loop_time
-                
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
-                    sleep_times.append(sleep_time * 1000)
             
             # Handle keyboard input
             key = cv2.waitKey(1) & 0xFF
