@@ -9,11 +9,13 @@ Person Detection with ByteTrack Tracking
 import cv2
 import numpy as np
 import time
+import os
 from threading import Thread, Lock
 from collections import deque
 
 # Import tracking module
 from bytetrack_tracker import ByteTracker, TargetLocker
+from astra_camera import AstraCamera, PYORBBECSDK_AVAILABLE
 
 # ============================================================================
 # CONFIGURATION
@@ -29,23 +31,28 @@ CAMERA_HEIGHT = 240
 CAMERA_FPS = 30
 
 # Model Settings
-INPUT_SIZE = 256
+INPUT_SIZE = 320
 CONFIDENCE_THRESHOLD = 0.45
 IOU_THRESHOLD = 0.45
 PERSON_CLASS_ID = 0
 
 # Performance Settings
-AI_INTERVAL = 0.15  # Run AI every 150ms (~6.7 FPS)
+AI_INTERVAL = 0.1  # Run AI every 100ms (~10 FPS)
+FORCE_USB_CAMERA = False  # Set to True to force USB camera
 
 # Tracking Settings
 TRACK_THRESH = 0.5  # High confidence threshold for tracking
 TRACK_BUFFER = 90   # Keep lost tracks for 90 frames (3 seconds at 30 FPS)
 MATCH_THRESH = 0.7  # Lower threshold for better matching when moving fast
 
+# Depth Settings (for Astra camera)
+SHOW_DEPTH_WINDOW = False  # Toggle depth visualization
+MAX_DEPTH_RANGE = 5000  # Max depth in mm (5 meters)
+DEPTH_COLORMAP = cv2.COLORMAP_JET  # Depth colormap
+
 # ============================================================================
 # THREADED CAMERA STREAM
 # ============================================================================
-
 class ThreadedCamera:
     """Threaded camera capture for zero-latency frame reading"""
     
@@ -123,7 +130,6 @@ class ThreadedCamera:
 # ============================================================================
 # PREPROCESSING
 # ============================================================================
-
 class PreProcessor:
     """Optimized preprocessing for YOLO models"""
     
@@ -163,7 +169,6 @@ class PreProcessor:
 # ============================================================================
 # ONNX DETECTOR
 # ============================================================================
-
 class ONNXDetector:
     """ONNX Runtime inference engine"""
     
@@ -270,9 +275,10 @@ class ONNXDetector:
 # ============================================================================
 # MAIN DETECTION + TRACKING PIPELINE
 # ============================================================================
-
 def main():
     """Main detection and tracking loop"""
+    
+    global SHOW_DEPTH_WINDOW  # Declare global at the beginning
     
     print("\n" + "="*70)
     print("Person Detection with ByteTrack Tracking")
@@ -285,12 +291,28 @@ def main():
     
     # Initialize components
     print("[1/4] Initializing camera...")
-    camera = ThreadedCamera(
-        src=CAMERA_ID,
-        width=CAMERA_WIDTH,
-        height=CAMERA_HEIGHT,
-        fps=CAMERA_FPS
-    ).start()
+    if PYORBBECSDK_AVAILABLE and not FORCE_USB_CAMERA:
+        print("[Camera] Using Orbbec Astra camera (pyorbbecsdk)")
+        try:
+            camera = AstraCamera(fps=CAMERA_FPS).start()
+            using_astra = True
+        except Exception as e:
+            print(f"[Camera Error] Failed to init AstraCamera: {e}")
+            print("[Camera] Falling back to standard USB camera (cv2.VideoCapture)")
+            camera = ThreadedCamera(src=CAMERA_ID, width=CAMERA_WIDTH, height=CAMERA_HEIGHT, fps=CAMERA_FPS).start()
+            using_astra = False
+    else:
+        if FORCE_USB_CAMERA:
+            print("[Camera] Forced to use standard USB camera (cv2.VideoCapture)")
+        else:
+            print("[Camera] Using standard USB camera (cv2.VideoCapture)")
+        camera = ThreadedCamera(
+            src=CAMERA_ID,
+            width=CAMERA_WIDTH,
+            height=CAMERA_HEIGHT,
+            fps=CAMERA_FPS
+        ).start()
+        using_astra = False
     
     print("\n[2/4] Initializing preprocessor...")
     preprocessor = PreProcessor(input_size=INPUT_SIZE)
@@ -324,6 +346,7 @@ def main():
     print("\nControls:")
     print("  'q' - Quit")
     print("  's' - Show stats")
+    print("  'd' - Toggle depth window (Astra camera only)")
     print("="*70 + "\n")
     
     # Performance tracking
@@ -351,7 +374,12 @@ def main():
             
             last_ai_time = current_time
             
-            frame, camera_fps = camera.read()
+            if using_astra:
+                frame, depth_frame, camera_fps = camera.read()
+            else:
+                frame, camera_fps = camera.read()
+                depth_frame = None
+                
             if frame is None:
                 continue
             
@@ -436,8 +464,45 @@ def main():
                     cv2.line(frame, (x_c - 15, y_c), (x_c + 15, y_c), (0, 0, 255), 2)
                     cv2.line(frame, (x_c, y_c - 15), (x_c, y_c + 15), (0, 0, 255), 2)
                     
+                    # Calculate distance from depth frame
+                    distance_str = ""
+                    if depth_frame is not None:
+                        depth_h, depth_w = depth_frame.shape[:2]
+                        
+                        # Scale bounding box to depth frame size if needed
+                        scale_x = depth_w / frame.shape[1]
+                        scale_y = depth_h / frame.shape[0]
+                        
+                        depth_x1 = int(x1 * scale_x)
+                        depth_y1 = int(y1 * scale_y)
+                        depth_x2 = int(x2 * scale_x)
+                        depth_y2 = int(y2 * scale_y)
+                        
+                        # Ensure coordinates are within depth frame bounds
+                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                        
+                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                            # Extract depth values in the person's bounding box
+                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                            
+                            # Filter out zero/invalid depth values
+                            valid_depths = person_depth_region[person_depth_region > 0]
+                            
+                            if len(valid_depths) > 0:
+                                # Use median for more robust distance estimation
+                                median_dist_mm = np.median(valid_depths)
+                                distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                                
+                                # Also show min/max for debugging
+                                min_dist = np.min(valid_depths) / 1000.0
+                                max_dist = np.max(valid_depths) / 1000.0
+                                distance_str += f" ({min_dist:.2f}-{max_dist:.2f}m)"
+                    
                     # Draw label
-                    label = f"TARGET ID:{tid} ({score:.2f})"
+                    label = f"TARGET ID:{tid} ({score:.2f}){distance_str}"
                     cv2.putText(frame, label, (x1, y1 - 10),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     
@@ -449,10 +514,79 @@ def main():
                     # Draw other tracked persons (CYAN)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 0), 2)
                     
+                    # Calculate distance for other persons too
+                    distance_str = ""
+                    if depth_frame is not None:
+                        depth_h, depth_w = depth_frame.shape[:2]
+                        scale_x = depth_w / frame.shape[1]
+                        scale_y = depth_h / frame.shape[0]
+                        
+                        depth_x1 = int(x1 * scale_x)
+                        depth_y1 = int(y1 * scale_y)
+                        depth_x2 = int(x2 * scale_x)
+                        depth_y2 = int(y2 * scale_y)
+                        
+                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                        
+                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                            valid_depths = person_depth_region[person_depth_region > 0]
+                            
+                            if len(valid_depths) > 0:
+                                median_dist_mm = np.median(valid_depths)
+                                distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                    
                     # Draw label
-                    label = f"ID:{tid} ({score:.2f})"
+                    label = f"ID:{tid} ({score:.2f}){distance_str}"
                     cv2.putText(frame, label, (x1, y1 - 10),
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+            
+            # Show depth visualization if enabled and available
+            if SHOW_DEPTH_WINDOW and depth_frame is not None:
+                # Create depth visualization
+                depth_vis = depth_frame.copy()
+                
+                # Normalize depth for visualization (0-MAX_DEPTH_RANGE -> 0-255)
+                depth_vis = np.clip(depth_vis, 0, MAX_DEPTH_RANGE)
+                depth_vis = (depth_vis * 255.0 / MAX_DEPTH_RANGE).astype(np.uint8)
+                
+                # Apply colormap
+                depth_colored = cv2.applyColorMap(depth_vis, DEPTH_COLORMAP)
+                
+                # Draw bounding boxes on depth image
+                for track in all_tracks:
+                    bbox = track['bbox']
+                    tid = track['track_id']
+                    x1, y1, x2, y2 = bbox
+                    
+                    # Scale to depth frame
+                    depth_h, depth_w = depth_frame.shape[:2]
+                    scale_x = depth_w / frame.shape[1]
+                    scale_y = depth_h / frame.shape[0]
+                    
+                    depth_x1 = int(x1 * scale_x)
+                    depth_y1 = int(y1 * scale_y)
+                    depth_x2 = int(x2 * scale_x)
+                    depth_y2 = int(y2 * scale_y)
+                    
+                    # Draw rectangle
+                    is_locked = (target is not None and tid == target['track_id'])
+                    color = (0, 255, 0) if is_locked else (255, 255, 0)
+                    thickness = 3 if is_locked else 2
+                    
+                    cv2.rectangle(depth_colored, (depth_x1, depth_y1), (depth_x2, depth_y2), color, thickness)
+                    cv2.putText(depth_colored, f"ID:{tid}", (depth_x1, depth_y1 - 5),
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                
+                # Add depth scale info
+                cv2.putText(depth_colored, f"Depth Range: 0-{MAX_DEPTH_RANGE/1000.0:.1f}m", 
+                           (10, depth_colored.shape[0] - 10),
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                
+                cv2.imshow('Depth View', depth_colored)
             
             # Draw status indicator
             if target_locker.is_locked and target is not None:
@@ -500,7 +634,33 @@ def main():
                 if target_locker.is_locked and target:
                     x_c = (target['bbox'][0] + target['bbox'][2]) // 2
                     y_c = (target['bbox'][1] + target['bbox'][3]) // 2
-                    print(f"\r[LOCKED] Target ID:{target['track_id']} at ({x_c:4d}, {y_c:4d}) | "
+                    
+                    # Get distance info for console
+                    distance_info = ""
+                    if depth_frame is not None:
+                        depth_h, depth_w = depth_frame.shape[:2]
+                        scale_x = depth_w / frame.shape[1]
+                        scale_y = depth_h / frame.shape[0]
+                        
+                        depth_x1 = int(target['bbox'][0] * scale_x)
+                        depth_y1 = int(target['bbox'][1] * scale_y)
+                        depth_x2 = int(target['bbox'][2] * scale_x)
+                        depth_y2 = int(target['bbox'][3] * scale_y)
+                        
+                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                        
+                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                            valid_depths = person_depth_region[person_depth_region > 0]
+                            
+                            if len(valid_depths) > 0:
+                                median_dist_mm = np.median(valid_depths)
+                                distance_info = f" | Dist: {median_dist_mm/1000.0:.2f}m"
+                    
+                    print(f"\r[LOCKED] Target ID:{target['track_id']} at ({x_c:4d}, {y_c:4d}){distance_info} | "
                           f"Tracks: {len(all_tracks)} | Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | "
                           f"Inf: {avg_inference:4.0f}ms", 
                           end='', flush=True)
@@ -526,7 +686,20 @@ def main():
                 if status['is_locked']:
                     print(f"Target ID: {status['target_id']}")
                     print(f"Frames without target: {status['frames_without_target']}")
+                print(f"Using Astra Camera: {using_astra}")
+                if using_astra and depth_frame is not None:
+                    print(f"Depth Frame Size: {depth_frame.shape}")
+                    print(f"Depth Range: {np.min(depth_frame[depth_frame > 0])}-{np.max(depth_frame)}mm")
                 print(f"{'='*70}\n")
+            elif key == ord('d'):
+                # Toggle depth window
+                if using_astra:
+                    SHOW_DEPTH_WINDOW = not SHOW_DEPTH_WINDOW
+                    if not SHOW_DEPTH_WINDOW:
+                        cv2.destroyWindow('Depth View')
+                    print(f"\nDepth window: {'ON' if SHOW_DEPTH_WINDOW else 'OFF'}")
+                else:
+                    print("\nDepth view only available with Astra camera")
     
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")
