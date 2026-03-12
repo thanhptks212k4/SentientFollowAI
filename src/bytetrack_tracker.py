@@ -135,13 +135,23 @@ class Track:
     def _state_to_bbox(state):
         """Convert state [cx, cy, area, ratio] to bbox [x1, y1, x2, y2]"""
         cx, cy, area, ratio = state
-        h = np.sqrt(area / max(ratio, 1e-6))
+        
+        # Ensure valid values to prevent overflow
+        area = max(area, 1.0)  # Minimum area of 1 pixel
+        ratio = max(ratio, 1e-6)  # Minimum ratio
+        
+        h = np.sqrt(area / ratio)
         w = ratio * h
         x1 = cx - w / 2
         y1 = cy - h / 2
         x2 = cx + w / 2
         y2 = cy + h / 2
-        return np.array([x1, y1, x2, y2])
+        
+        # Ensure finite values
+        bbox = np.array([x1, y1, x2, y2])
+        bbox = np.nan_to_num(bbox, nan=0.0, posinf=1000.0, neginf=0.0)
+        
+        return bbox
 
 
 class ByteTracker:
@@ -246,9 +256,17 @@ class ByteTracker:
         output_tracks = []
         for track in self.tracked_tracks:
             if track.state == 'confirmed':
+                # Ensure bbox is valid before adding to output
+                bbox = track.bbox
+                if np.any(np.isnan(bbox)) or np.any(np.isinf(bbox)):
+                    continue  # Skip invalid bboxes
+                
+                # Ensure bbox coordinates are reasonable
+                bbox_int = np.clip(bbox, 0, 10000).astype(int)
+                
                 output_tracks.append({
                     'track_id': track.track_id,
-                    'bbox': track.bbox.astype(int),
+                    'bbox': bbox_int,
                     'score': track.score
                 })
         

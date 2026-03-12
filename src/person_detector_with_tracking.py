@@ -449,6 +449,11 @@ def main():
                 bbox = track['bbox']
                 score = track['score']
                 x1, y1, x2, y2 = bbox
+                
+                # Validate bbox coordinates
+                if x1 >= x2 or y1 >= y2 or x1 < 0 or y1 < 0 or x2 > frame.shape[1] or y2 > frame.shape[0]:
+                    continue  # Skip invalid bboxes
+                
                 x_c = (x1 + x2) // 2
                 y_c = (y1 + y2) // 2
                 
@@ -467,39 +472,42 @@ def main():
                     # Calculate distance from depth frame
                     distance_str = ""
                     if depth_frame is not None:
-                        depth_h, depth_w = depth_frame.shape[:2]
-                        
-                        # Scale bounding box to depth frame size if needed
-                        scale_x = depth_w / frame.shape[1]
-                        scale_y = depth_h / frame.shape[0]
-                        
-                        depth_x1 = int(x1 * scale_x)
-                        depth_y1 = int(y1 * scale_y)
-                        depth_x2 = int(x2 * scale_x)
-                        depth_y2 = int(y2 * scale_y)
-                        
-                        # Ensure coordinates are within depth frame bounds
-                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
-                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
-                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
-                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
-                        
-                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
-                            # Extract depth values in the person's bounding box
-                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                        try:
+                            depth_h, depth_w = depth_frame.shape[:2]
                             
-                            # Filter out zero/invalid depth values
-                            valid_depths = person_depth_region[person_depth_region > 0]
+                            # Scale bounding box to depth frame size if needed
+                            scale_x = depth_w / frame.shape[1]
+                            scale_y = depth_h / frame.shape[0]
                             
-                            if len(valid_depths) > 0:
-                                # Use median for more robust distance estimation
-                                median_dist_mm = np.median(valid_depths)
-                                distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                            depth_x1 = int(x1 * scale_x)
+                            depth_y1 = int(y1 * scale_y)
+                            depth_x2 = int(x2 * scale_x)
+                            depth_y2 = int(y2 * scale_y)
+                            
+                            # Ensure coordinates are within depth frame bounds
+                            depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                            depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                            depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                            depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                            
+                            if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                                # Extract depth values in the person's bounding box
+                                person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
                                 
-                                # Also show min/max for debugging
-                                min_dist = np.min(valid_depths) / 1000.0
-                                max_dist = np.max(valid_depths) / 1000.0
-                                distance_str += f" ({min_dist:.2f}-{max_dist:.2f}m)"
+                                # Filter out zero/invalid depth values
+                                valid_depths = person_depth_region[person_depth_region > 0]
+                                
+                                if len(valid_depths) > 0:
+                                    # Use median for more robust distance estimation
+                                    median_dist_mm = np.median(valid_depths)
+                                    distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                                    
+                                    # Also show min/max for debugging
+                                    min_dist = np.min(valid_depths) / 1000.0
+                                    max_dist = np.max(valid_depths) / 1000.0
+                                    distance_str += f" ({min_dist:.2f}-{max_dist:.2f}m)"
+                        except Exception as e:
+                            distance_str = " - N/A"  # Fallback if depth calculation fails
                     
                     # Draw label
                     label = f"TARGET ID:{tid} ({score:.2f}){distance_str}"
@@ -517,27 +525,30 @@ def main():
                     # Calculate distance for other persons too
                     distance_str = ""
                     if depth_frame is not None:
-                        depth_h, depth_w = depth_frame.shape[:2]
-                        scale_x = depth_w / frame.shape[1]
-                        scale_y = depth_h / frame.shape[0]
-                        
-                        depth_x1 = int(x1 * scale_x)
-                        depth_y1 = int(y1 * scale_y)
-                        depth_x2 = int(x2 * scale_x)
-                        depth_y2 = int(y2 * scale_y)
-                        
-                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
-                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
-                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
-                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
-                        
-                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
-                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
-                            valid_depths = person_depth_region[person_depth_region > 0]
+                        try:
+                            depth_h, depth_w = depth_frame.shape[:2]
+                            scale_x = depth_w / frame.shape[1]
+                            scale_y = depth_h / frame.shape[0]
                             
-                            if len(valid_depths) > 0:
-                                median_dist_mm = np.median(valid_depths)
-                                distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                            depth_x1 = int(x1 * scale_x)
+                            depth_y1 = int(y1 * scale_y)
+                            depth_x2 = int(x2 * scale_x)
+                            depth_y2 = int(y2 * scale_y)
+                            
+                            depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                            depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                            depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                            depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                            
+                            if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                                person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                                valid_depths = person_depth_region[person_depth_region > 0]
+                                
+                                if len(valid_depths) > 0:
+                                    median_dist_mm = np.median(valid_depths)
+                                    distance_str = f" - {median_dist_mm/1000.0:.2f}m"
+                        except Exception as e:
+                            distance_str = " - N/A"
                     
                     # Draw label
                     label = f"ID:{tid} ({score:.2f}){distance_str}"
@@ -632,38 +643,47 @@ def main():
             # Console output (update every AI cycle to reduce overhead)
             if ai_frame_count % 5 == 0:  # Update every 5 AI cycles
                 if target_locker.is_locked and target:
-                    x_c = (target['bbox'][0] + target['bbox'][2]) // 2
-                    y_c = (target['bbox'][1] + target['bbox'][3]) // 2
-                    
-                    # Get distance info for console
-                    distance_info = ""
-                    if depth_frame is not None:
-                        depth_h, depth_w = depth_frame.shape[:2]
-                        scale_x = depth_w / frame.shape[1]
-                        scale_y = depth_h / frame.shape[0]
+                    try:
+                        x_c = (target['bbox'][0] + target['bbox'][2]) // 2
+                        y_c = (target['bbox'][1] + target['bbox'][3]) // 2
                         
-                        depth_x1 = int(target['bbox'][0] * scale_x)
-                        depth_y1 = int(target['bbox'][1] * scale_y)
-                        depth_x2 = int(target['bbox'][2] * scale_x)
-                        depth_y2 = int(target['bbox'][3] * scale_y)
+                        # Get distance info for console
+                        distance_info = ""
+                        if depth_frame is not None:
+                            try:
+                                depth_h, depth_w = depth_frame.shape[:2]
+                                scale_x = depth_w / frame.shape[1]
+                                scale_y = depth_h / frame.shape[0]
+                                
+                                depth_x1 = int(target['bbox'][0] * scale_x)
+                                depth_y1 = int(target['bbox'][1] * scale_y)
+                                depth_x2 = int(target['bbox'][2] * scale_x)
+                                depth_y2 = int(target['bbox'][3] * scale_y)
+                                
+                                depth_x1 = max(0, min(depth_x1, depth_w - 1))
+                                depth_y1 = max(0, min(depth_y1, depth_h - 1))
+                                depth_x2 = max(0, min(depth_x2, depth_w - 1))
+                                depth_y2 = max(0, min(depth_y2, depth_h - 1))
+                                
+                                if depth_x2 > depth_x1 and depth_y2 > depth_y1:
+                                    person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
+                                    valid_depths = person_depth_region[person_depth_region > 0]
+                                    
+                                    if len(valid_depths) > 0:
+                                        median_dist_mm = np.median(valid_depths)
+                                        distance_info = f" | Dist: {median_dist_mm/1000.0:.2f}m"
+                            except Exception as e:
+                                distance_info = " | Dist: N/A"
                         
-                        depth_x1 = max(0, min(depth_x1, depth_w - 1))
-                        depth_y1 = max(0, min(depth_y1, depth_h - 1))
-                        depth_x2 = max(0, min(depth_x2, depth_w - 1))
-                        depth_y2 = max(0, min(depth_y2, depth_h - 1))
-                        
-                        if depth_x2 > depth_x1 and depth_y2 > depth_y1:
-                            person_depth_region = depth_frame[depth_y1:depth_y2, depth_x1:depth_x2]
-                            valid_depths = person_depth_region[person_depth_region > 0]
-                            
-                            if len(valid_depths) > 0:
-                                median_dist_mm = np.median(valid_depths)
-                                distance_info = f" | Dist: {median_dist_mm/1000.0:.2f}m"
-                    
-                    print(f"\r[LOCKED] Target ID:{target['track_id']} at ({x_c:4d}, {y_c:4d}){distance_info} | "
-                          f"Tracks: {len(all_tracks)} | Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | "
-                          f"Inf: {avg_inference:4.0f}ms", 
-                          end='', flush=True)
+                        print(f"\r[LOCKED] Target ID:{target['track_id']} at ({x_c:4d}, {y_c:4d}){distance_info} | "
+                              f"Tracks: {len(all_tracks)} | Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | "
+                              f"Inf: {avg_inference:4.0f}ms", 
+                              end='', flush=True)
+                    except Exception as e:
+                        print(f"\r[LOCKED] Target ID:{target['track_id']} (invalid coords) | "
+                              f"Tracks: {len(all_tracks)} | Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | "
+                              f"Inf: {avg_inference:4.0f}ms", 
+                              end='', flush=True)
                 elif len(all_tracks) > 0:
                     print(f"\r[TRACKING] {len(all_tracks)} person(s) | "
                           f"Cam: {camera_fps:5.1f} | AI: {ai_fps:5.1f} | Inf: {avg_inference:4.0f}ms", 
