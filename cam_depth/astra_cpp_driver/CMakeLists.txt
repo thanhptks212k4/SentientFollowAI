@@ -3,8 +3,8 @@ project(astra_driver)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# 1. SETUP ORBBEC SDK (Giữ nguyên như cũ)
-set(ORBBEC_SDK_DIR "/home/hoang/Documents/cam_depth/OrbbecSDK")
+# 1. SETUP ORBBEC SDK (Fixed path)
+set(ORBBEC_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../OrbbecSDK")
 set(ORBBEC_LIB_DIR "${ORBBEC_SDK_DIR}/lib/linux_x64")
 
 include_directories(${ORBBEC_SDK_DIR}/include)

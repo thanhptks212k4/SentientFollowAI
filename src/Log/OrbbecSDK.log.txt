@@ -1,0 +1,243 @@
+[03/13 14:41:17.549796][error][156027][UsbEnumeratorLibusb.cpp:157] Invalid descriptor index: 0
+[03/13 14:41:17.549859][error][156027][UsbEnumeratorLibusb.cpp:403] Failed to query USB device serial number
+[03/13 14:41:39.764322][error][156309][UsbEnumeratorLibusb.cpp:157] Invalid descriptor index: 0
+[03/13 14:41:39.764385][error][156309][UsbEnumeratorLibusb.cpp:403] Failed to query USB device serial number
+[03/13 14:46:30.782401][error][160376][UsbEnumeratorLibusb.cpp:157] Invalid descriptor index: 0
+[03/13 14:46:30.782457][error][160376][UsbEnumeratorLibusb.cpp:403] Failed to query USB device serial number
+[03/13 14:56:32.431109][debug][166799][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 14:56:32.431272][debug][166799][Context.cpp:49] Config file version=1.1
+[03/13 14:56:32.431354][debug][166799][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 14:56:32.431411][info][166799][Context.cpp:68] Context created with config: default config!
+[03/13 14:56:32.431435][info][166799][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 14:56:32.431445][debug][166799][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 14:56:32.431450][info][166799][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 14:56:32.432299][debug][166799][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 14:56:32.432879][debug][166799][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 14:56:32.433883][debug][166799][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 14:56:32.433921][debug][166799][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 14:56:32.433944][warning][166799][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 14:56:32.434039][info][166799][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 14:56:32.434055][debug][166799][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 14:56:32.434061][debug][166799][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 14:56:32.434069][info][166799][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 14:56:32.434076][info][166799][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 14:56:32.434081][debug][166799][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 14:56:32.434253][error][166799][HandleLibusb.hpp:89] failed to claim usb interface: 0, error: OB_USB_STATUS_BUSY
+[03/13 14:56:32.465636][error][166799][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 14:56:32.474995][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=0 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475030][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=1 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475041][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=2 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475051][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=3 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475061][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=4 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475070][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=5 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475080][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=6 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475089][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=7 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475099][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=8 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475111][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=9 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475123][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=10 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475133][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=11 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475154][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=12 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475163][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=13 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475171][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=14 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475179][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=15 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475188][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=16 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475196][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=17 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475205][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=18 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475213][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=19 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475221][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=20 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475229][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=21 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475237][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=22 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475245][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=23 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475254][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=24 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475262][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=25 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475270][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=26 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475278][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=27 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475287][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=28 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475295][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=29 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475303][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=30 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475311][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=31 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475320][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=32 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475329][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=33 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475337][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=34 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475346][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=35 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475354][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=36 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475362][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=37 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475370][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=38 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475378][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=39 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475386][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=40 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475395][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=41 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475403][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=42 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475411][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=43 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475423][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=44 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475432][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=45 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475441][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=46 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475449][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=47 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475457][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=48 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475465][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=49 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475474][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=50 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475483][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=51 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475491][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=52 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475500][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=53 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475509][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=54 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475517][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=55 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475526][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=56 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475535][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=57 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475543][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=58 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475552][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=59 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475560][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=60 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475568][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=61 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475576][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=62 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.475585][error][166805][OpenNIUSBLinux.cpp:195] Endpoint 0x81, Buffer=63 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501859][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=0 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501922][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=1 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501935][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=2 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501944][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=3 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501952][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=4 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501961][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=5 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501981][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=6 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501990][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=7 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.501998][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=8 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502006][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=9 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502014][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=10 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502023][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=11 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502039][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=12 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502048][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=13 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502056][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=14 : Failed to submit asynch I/O transfer!
+[03/13 14:56:32.502064][error][166806][OpenNIUSBLinux.cpp:195] Endpoint 0x82, Buffer=15 : Failed to submit asynch I/O transfer!
+[03/13 14:56:33.575846][error][166805][OpenNIUSBLinux.cpp:282] Endpoint  0x81, Buffer0: Failed to re-submit asynch I/O transfer!
+[03/13 14:56:33.602256][error][166806][OpenNIUSBLinux.cpp:282] Endpoint  0x82, Buffer0: Failed to re-submit asynch I/O transfer!
+[03/13 14:56:34.676167][error][166805][OpenNIUSBLinux.cpp:282] Endpoint  0x81, Buffer1: Failed to re-submit asynch I/O transfer!
+[03/13 14:56:34.702533][error][166806][OpenNIUSBLinux.cpp:282] Endpoint  0x82, Buffer1: Failed to re-submit asynch I/O transfer!
+[03/13 14:57:35.100076][debug][167489][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 14:57:35.100147][debug][167489][Context.cpp:49] Config file version=1.1
+[03/13 14:57:35.100162][debug][167489][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 14:57:35.100169][info][167489][Context.cpp:68] Context created with config: default config!
+[03/13 14:57:35.100186][info][167489][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 14:57:35.100194][debug][167489][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 14:57:35.100198][info][167489][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 14:57:35.100699][debug][167489][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 14:57:35.101268][debug][167489][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 14:57:35.101348][debug][167489][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 14:57:35.101358][debug][167489][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 14:57:35.101375][warning][167489][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 14:57:35.101444][info][167489][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 14:57:35.101457][debug][167489][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 14:57:35.101462][debug][167489][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 14:57:35.101468][info][167489][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 14:57:35.101475][info][167489][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 14:57:35.101480][debug][167489][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 14:57:35.114485][error][167489][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:00:10.315549][debug][169067][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:00:10.315623][debug][169067][Context.cpp:49] Config file version=1.1
+[03/13 15:00:10.315639][debug][169067][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:00:10.315646][info][169067][Context.cpp:68] Context created with config: default config!
+[03/13 15:00:10.315663][info][169067][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:00:10.315672][debug][169067][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:00:10.315676][info][169067][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:00:10.316195][debug][169067][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:00:10.316600][debug][169067][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:00:10.316621][debug][169067][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:00:10.316636][debug][169067][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:00:10.316654][warning][169067][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:00:10.316720][info][169067][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:00:10.316733][debug][169067][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:00:10.316738][debug][169067][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:00:10.316744][info][169067][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:00:10.316751][info][169067][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:00:10.316755][debug][169067][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:00:10.328097][error][169067][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:03:10.149178][debug][170738][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:03:10.149265][debug][170738][Context.cpp:49] Config file version=1.1
+[03/13 15:03:10.149280][debug][170738][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:03:10.149287][info][170738][Context.cpp:68] Context created with config: default config!
+[03/13 15:03:10.149306][info][170738][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:03:10.149315][debug][170738][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:03:10.149319][info][170738][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:03:10.149879][debug][170738][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:03:10.150329][debug][170738][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:03:10.150424][debug][170738][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:03:10.150434][debug][170738][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:03:10.150453][warning][170738][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:03:10.150708][info][170738][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:03:10.150773][debug][170738][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:03:10.150788][debug][170738][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:03:10.150798][info][170738][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:03:10.150829][info][170738][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:03:10.150849][debug][170738][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:03:10.164184][error][170738][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:10:25.179602][debug][174680][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:10:25.179790][debug][174680][Context.cpp:49] Config file version=1.1
+[03/13 15:10:25.179819][debug][174680][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:10:25.179834][info][174680][Context.cpp:68] Context created with config: default config!
+[03/13 15:10:25.180115][info][174680][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:10:25.180135][debug][174680][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:10:25.180140][info][174680][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:10:25.181035][debug][174680][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:10:25.182015][debug][174680][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:10:25.182098][debug][174680][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:10:25.182106][debug][174680][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:10:25.182127][warning][174680][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:10:25.183052][info][174680][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:10:25.183093][debug][174680][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:10:25.183101][debug][174680][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:10:25.183114][info][174680][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:10:25.183122][info][174680][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:10:25.183129][debug][174680][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:10:25.196062][error][174680][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:27:18.823001][debug][183178][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:27:18.823171][debug][183178][Context.cpp:49] Config file version=1.1
+[03/13 15:27:18.823192][debug][183178][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:27:18.823201][info][183178][Context.cpp:68] Context created with config: default config!
+[03/13 15:27:18.823223][info][183178][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:27:18.823232][debug][183178][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:27:18.823236][info][183178][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:27:18.823738][debug][183178][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:27:18.824124][debug][183178][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:27:18.824278][debug][183178][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:27:18.824356][debug][183178][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:27:18.824436][warning][183178][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:27:18.824635][info][183178][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:27:18.824770][debug][183178][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:27:18.824779][debug][183178][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:27:18.824787][info][183178][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:27:18.824875][info][183178][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:27:18.824914][debug][183178][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:27:18.841523][error][183178][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:28:51.380509][debug][184216][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:28:51.380569][debug][184216][Context.cpp:49] Config file version=1.1
+[03/13 15:28:51.380582][debug][184216][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:28:51.380589][info][184216][Context.cpp:68] Context created with config: default config!
+[03/13 15:28:51.380605][info][184216][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:28:51.380613][debug][184216][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:28:51.380617][info][184216][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:28:51.381079][debug][184216][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:28:51.381527][debug][184216][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:28:51.381545][debug][184216][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:28:51.381551][debug][184216][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:28:51.381567][warning][184216][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:28:51.381620][info][184216][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:28:51.381632][debug][184216][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:28:51.381643][debug][184216][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:28:51.381649][info][184216][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:28:51.381654][info][184216][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:28:51.381658][debug][184216][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:28:51.395186][error][184216][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/13 15:33:08.394109][debug][186267][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI/src
+[03/13 15:33:08.394174][debug][186267][Context.cpp:49] Config file version=1.1
+[03/13 15:33:08.394188][debug][186267][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/13 15:33:08.394195][info][186267][Context.cpp:68] Context created with config: default config!
+[03/13 15:33:08.394212][info][186267][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI/src, SDK version=v1.10.28-20251020-df895dc
+[03/13 15:33:08.394220][debug][186267][DeviceManager.cpp:30] DeviceManager init ...
+[03/13 15:33:08.394224][info][186267][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/13 15:33:08.394687][debug][186267][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/13 15:33:08.395253][debug][186267][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/13 15:33:08.395268][debug][186267][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/13 15:33:08.395275][debug][186267][UsbDeviceEnumerator.cpp:166]  - 1-2-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/13 15:33:08.395291][warning][186267][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/13 15:33:08.395345][info][186267][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/13 15:33:08.395357][debug][186267][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/13 15:33:08.395362][debug][186267][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/13 15:33:08.395368][info][186267][DeviceManager.cpp:15] Current found device(s): (1)
+[03/13 15:33:08.395375][info][186267][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/13 15:33:08.395380][debug][186267][DeviceManager.cpp:52] DeviceManager construct done!
+[03/13 15:33:08.407400][error][186267][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!

@@ -11,13 +11,23 @@ from threading import Thread, Lock
 import subprocess
 import re
 
-# Try to import pyorbbecsdk first
+# Try to import pyorbbecsdk first, but also check C++ backend
 try:
     import pyorbbecsdk as ob
     PYORBBECSDK_AVAILABLE = True
     print("[AstraCamera] pyorbbecsdk imported successfully")
 except ImportError as e:
-    PYORBBECSDK_AVAILABLE = False
+    # Check if C++ backend is available
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(current_dir)
+    cpp_executable = os.path.join(project_root, "cam_depth/astra_cpp_driver/build/fast_exporter")
+    
+    if os.path.exists(cpp_executable):
+        PYORBBECSDK_AVAILABLE = True
+        print("[AstraCamera] C++ backend available, using C++ mode")
+    else:
+        PYORBBECSDK_AVAILABLE = False
+        print(f"[AstraCamera] pyorbbecsdk not available: {e}")
     ob = None
     print(f"[AstraCamera] pyorbbecsdk not available: {e}")
 
@@ -38,7 +48,10 @@ class AstraCamera:
         
         # C++ backend
         self.process = None
-        self.cpp_executable = os.path.abspath("cam_depth/astra_cpp_driver/build/fast_exporter")
+        # Get the project root directory (parent of src)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        self.cpp_executable = os.path.join(project_root, "cam_depth/astra_cpp_driver/build/fast_exporter")
         
         if not os.path.exists(self.cpp_executable):
             raise FileNotFoundError(f"C++ executable not found: {self.cpp_executable}")
@@ -58,13 +71,22 @@ class AstraCamera:
         try:
             print("[AstraCamera] Starting C++ backend...")
             
+            # Set up environment with library path
+            env = os.environ.copy()
+            lib_path = os.path.abspath("cam_depth/astra_cpp_driver/build")
+            if 'LD_LIBRARY_PATH' in env:
+                env['LD_LIBRARY_PATH'] = f"{lib_path}:{env['LD_LIBRARY_PATH']}"
+            else:
+                env['LD_LIBRARY_PATH'] = lib_path
+            
             # Start C++ process
             self.process = subprocess.Popen(
                 [self.cpp_executable],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 universal_newlines=True,
-                bufsize=1
+                bufsize=1,
+                env=env  # Pass environment with library path
             )
             
             self.running = True
