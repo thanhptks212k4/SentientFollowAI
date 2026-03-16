@@ -5,7 +5,7 @@ from typing import Final
 
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_current_dir)
-MODEL_PATH: Final[str] = os.path.join(_project_root, 'models/yolov5nu_person_224_int8.onnx')
+MODEL_PATH: Final[str] = os.path.join(_project_root, 'models/yolov8n_person_224_int8.onnx')
 
 CAMERA_ID: Final[int] = 0
 CAMERA_WIDTH: Final[int] = 320
@@ -17,12 +17,12 @@ CONF_THRESH: Final[float] = 0.45
 IOU_THRESH: Final[float] = 0.25
 PERSON_CLASS: Final[int] = 0
 
-AI_FPS_TARGET: Final[int] = 15
+AI_FPS_TARGET: Final[int] = 20
 FORCE_USB_CAMERA: Final[bool] = False
 
 TRACK_THRESH: Final[float] = 0.50
 TRACK_BUFFER: Final[int] = 60
-MATCH_THRESH: Final[float] = 0.85
+MATCH_THRESH: Final[float] = 0.35
 
 GC_INTERVAL: Final[int] = 500
 
