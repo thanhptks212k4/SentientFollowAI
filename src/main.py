@@ -240,7 +240,7 @@ def main():
                 if distance_m is not None:
                     distance_mm = distance_m * 1000.0
                     try:
-                        action = decision_maker.process_target(current_target['bbox'], distance_mm)
+                        action = decision_maker.process_target(current_target['bbox'], distance_mm, frame.shape[1], frame.shape[0])
                     except Exception as e:
                         decision_maker.stop()
             else:

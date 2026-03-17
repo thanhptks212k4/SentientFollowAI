@@ -46,7 +46,7 @@ class VisualServoingDecisionMaker:
         self.uart_baudrate = uart_baudrate
         self.serial_conn = self._init_uart()
 
-    def _init_uart(self) -> serial.Serial | None:
+    def _init_uart(self) -> Optional[serial.Serial]:
         """Khởi tạo kết nối UART an toàn, trả về None nếu thất bại."""
         try:
             conn = serial.Serial(
@@ -100,9 +100,13 @@ class VisualServoingDecisionMaker:
         self.stats['stop_count'] += 1
         self.send_to_esp32(0.0, 0.0)
 
-    def process_target(self, bbox: List[int], depth_mm: float) -> str:
+    def process_target(self, bbox: List[int], depth_mm: float, frame_width: int, frame_height: int) -> str:
         self.decision_count += 1
         self.stats['total_decisions'] += 1
+        
+        # Tính tâm camera tự động theo resolution thực tế
+        self.camera_center_x = frame_width // 2
+        self.camera_center_y = frame_height // 2
         
         if len(bbox) != 4 or depth_mm <= 0:
             self.stop()
@@ -237,7 +241,7 @@ def test_visual_servoing():
     ]
     
     for i, (bbox, depth, expected) in enumerate(test_cases):
-        action = dm.process_target(bbox, depth)
+        action = dm.process_target(bbox, depth, 640, 480)
     
     stats = dm.get_statistics()
 
