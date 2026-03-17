@@ -2,6 +2,7 @@
 
 import time
 import math
+import serial
 from typing import List, Dict, Any, Optional
 from config import (
     CAMERA_WIDTH, CAMERA_HEIGHT,
@@ -12,7 +13,7 @@ from config import (
 )
 
 class VisualServoingDecisionMaker:
-    def __init__(self):
+    def __init__(self, uart_port='/dev/serial0', uart_baudrate=115200):
         self.camera_center_x = CAMERA_WIDTH // 2
         self.camera_center_y = CAMERA_HEIGHT // 2
         self.safe_distance_mm = SAFE_DISTANCE_MM
@@ -40,6 +41,40 @@ class VisualServoingDecisionMaker:
             'avg_distance_error': 0.0
         }
 
+        # UART connection to ESP32
+        self.uart_port = uart_port
+        self.uart_baudrate = uart_baudrate
+        self.serial_conn = self._init_uart()
+
+    def _init_uart(self) -> serial.Serial | None:
+        """Khởi tạo kết nối UART an toàn, trả về None nếu thất bại."""
+        try:
+            conn = serial.Serial(
+                port=self.uart_port,
+                baudrate=self.uart_baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=1
+            )
+            print(f"[UART] Kết nối thành công: {self.uart_port} @ {self.uart_baudrate} baud")
+            return conn
+        except serial.SerialException as e:
+            print(f"[UART] ⚠️ Không thể mở {self.uart_port}: {e}")
+            return None
+
+    def send_to_esp32(self, v_speed: float, w_speed: float) -> None:
+        """Gửi v_speed, w_speed xuống ESP32 qua UART dưới dạng 'v,w\n'."""
+        msg = f"{v_speed:.3f},{w_speed:.3f}\n"
+        if self.serial_conn is not None and self.serial_conn.is_open:
+            try:
+                self.serial_conn.write(msg.encode('utf-8'))
+                print(f"[UART TX] {msg.strip()}")
+            except serial.SerialException as e:
+                print(f"[UART] ❌ Lỗi gửi: {e}")
+        else:
+            print(f"[UART] ⚠️ Serial chưa kết nối — bỏ qua: {msg.strip()}")
+
     def move_forward(self, speed: float) -> None:
         speed = max(self.min_speed, min(self.max_linear_speed, speed))
         self.last_command = f"MOVE_FORWARD({speed:.3f})"
@@ -63,6 +98,7 @@ class VisualServoingDecisionMaker:
     def stop(self) -> None:
         self.last_command = "STOP"
         self.stats['stop_count'] += 1
+        self.send_to_esp32(0.0, 0.0)
 
     def process_target(self, bbox: List[int], depth_mm: float) -> str:
         self.decision_count += 1
@@ -120,18 +156,21 @@ class VisualServoingDecisionMaker:
         if v_speed != 0.0 and w_speed != 0.0:
             self.last_command = f"COMBINED(v={v_speed:.3f}, w={w_speed:.3f})"
             print(f"🚀 MOTOR: Move Forward {v_speed:.3f} and Turn {w_speed:.3f}")
+            self.send_to_esp32(v_speed, w_speed)
             return f"COMBINED_MOTION: {' + '.join(action_description)}"
         elif v_speed != 0.0:
             if v_speed > 0:
                 self.last_command = f"MOVE_FORWARD({v_speed:.3f})"
             else:
                 self.last_command = f"MOVE_BACKWARD({abs(v_speed):.3f})"
+            self.send_to_esp32(v_speed, 0.0)
             return action_description[0]
         elif w_speed != 0.0:
             if w_speed > 0:
                 self.last_command = f"TURN_RIGHT({w_speed:.3f})"
             else:
                 self.last_command = f"TURN_LEFT({abs(w_speed):.3f})"
+            self.send_to_esp32(0.0, w_speed)
             return action_description[0]
         else:
             self.stop()
@@ -177,6 +216,13 @@ class VisualServoingDecisionMaker:
 
     def emergency_stop(self) -> None:
         self.stop()
+
+    def close(self) -> None:
+        """Đóng kết nối UART an toàn."""
+        self.send_to_esp32(0.0, 0.0)
+        if self.serial_conn is not None and self.serial_conn.is_open:
+            self.serial_conn.close()
+            print("[UART] Đã đóng kết nối serial.")
 
 def test_visual_servoing():
     dm = VisualServoingDecisionMaker()

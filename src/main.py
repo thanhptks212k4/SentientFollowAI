@@ -308,6 +308,7 @@ def main():
     
     finally:
         decision_maker.stop()
+        decision_maker.close()
         camera.stop()
         cv2.destroyAllWindows()
         gc.collect()
