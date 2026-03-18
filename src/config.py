@@ -34,7 +34,7 @@ FORCE_USB_CAMERA: Final[bool] = False
 # =============================================================================
 
 INPUT_SIZE: Final[int] = 224           # YOLOv8n input resolution
-CONF_THRESH: Final[float] = 0.45       # Detection confidence threshold
+CONF_THRESH: Final[float] = 0.65       # Detection confidence threshold (increased to reduce false positives)
 IOU_THRESH: Final[float] = 0.25        # NMS IoU threshold
 PERSON_CLASS: Final[int] = 0           # COCO person class ID
 
@@ -94,6 +94,24 @@ MAX_ACCEL: Final[float] = 2.0          # Maximum acceleration (m/s²)
 EMA_ALPHA: Final[float] = 0.2          # EMA filter coefficient (0.0-1.0)
 
 # =============================================================================
+# VIRTUAL DEPTH RADAR CONFIGURATION
+# =============================================================================
+
+# Obstacle Detection Thresholds
+OBSTACLE_THRESHOLD_SIDE: Final[int] = 500    # Side obstacle threshold (mm)
+OBSTACLE_THRESHOLD_FRONT: Final[int] = 400   # Front obstacle threshold (mm)
+NOISE_THRESHOLD: Final[int] = 100            # Minimum valid depth (mm)
+
+# Radar Scanning Parameters
+RADAR_SCAN_TOP: Final[float] = 0.40          # Top of scan region (40% of height)
+RADAR_SCAN_BOTTOM: Final[float] = 0.60       # Bottom of scan region (60% of height)
+RADAR_LEFT_BOUNDARY: Final[float] = 0.33     # Left zone boundary (33% of width)
+RADAR_RIGHT_BOUNDARY: Final[float] = 0.67    # Right zone boundary (67% of width)
+
+# Radar EMA Filtering
+RADAR_EMA_ALPHA: Final[float] = 0.3          # EMA coefficient for depth smoothing
+
+# =============================================================================
 # DISPLAY CONFIGURATION
 # =============================================================================
 
@@ -123,6 +141,18 @@ def validate_config() -> bool:
         errors.append("EMA_ALPHA must be between 0.0 and 1.0")
     if MAX_ACCEL <= 0:
         errors.append("MAX_ACCEL must be positive")
+    
+    # Virtual Depth Radar validation
+    if OBSTACLE_THRESHOLD_SIDE <= 0 or OBSTACLE_THRESHOLD_FRONT <= 0:
+        errors.append("Obstacle thresholds must be positive")
+    if NOISE_THRESHOLD <= 0:
+        errors.append("NOISE_THRESHOLD must be positive")
+    if not (0.0 <= RADAR_SCAN_TOP < RADAR_SCAN_BOTTOM <= 1.0):
+        errors.append("Radar scan region must be valid (0 <= top < bottom <= 1)")
+    if not (0.0 <= RADAR_LEFT_BOUNDARY < RADAR_RIGHT_BOUNDARY <= 1.0):
+        errors.append("Radar zone boundaries must be valid (0 <= left < right <= 1)")
+    if not (0.0 <= RADAR_EMA_ALPHA <= 1.0):
+        errors.append("RADAR_EMA_ALPHA must be between 0.0 and 1.0")
         
     if errors:
         print("Configuration validation errors:")

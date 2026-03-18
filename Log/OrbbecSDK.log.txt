@@ -1812,3 +1812,155 @@
 [03/18 14:37:59.284076][info][218331][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
 [03/18 14:37:59.284080][debug][218331][DeviceManager.cpp:52] DeviceManager construct done!
 [03/18 14:37:59.294878][error][218331][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 14:47:28.223731][debug][223474][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 14:47:28.223796][debug][223474][Context.cpp:49] Config file version=1.1
+[03/18 14:47:28.223815][debug][223474][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 14:47:28.223822][info][223474][Context.cpp:68] Context created with config: default config!
+[03/18 14:47:28.223838][info][223474][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 14:47:28.223847][debug][223474][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 14:47:28.223850][info][223474][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 14:47:28.224485][debug][223474][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 14:47:28.224873][debug][223474][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 14:47:28.224887][debug][223474][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 14:47:28.224893][debug][223474][UsbDeviceEnumerator.cpp:166]  - 1-10-7.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 14:47:28.224912][warning][223474][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 14:47:28.224970][info][223474][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 14:47:28.224983][debug][223474][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 14:47:28.224989][debug][223474][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 14:47:28.224994][info][223474][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 14:47:28.225000][info][223474][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 14:47:28.225005][debug][223474][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 14:47:28.238692][error][223474][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:04:02.137907][debug][231411][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:04:02.138819][debug][231411][Context.cpp:49] Config file version=1.1
+[03/18 15:04:02.139160][debug][231411][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:04:02.139200][info][231411][Context.cpp:68] Context created with config: default config!
+[03/18 15:04:02.139255][info][231411][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:04:02.139275][debug][231411][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:04:02.139282][info][231411][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:04:02.140480][debug][231411][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:04:02.141555][debug][231411][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:04:02.141649][debug][231411][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:04:02.141664][debug][231411][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:04:02.141711][warning][231411][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:04:02.141918][info][231411][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:04:02.141955][debug][231411][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:04:02.141965][debug][231411][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:04:02.141974][info][231411][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:04:02.141983][info][231411][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:04:02.142009][debug][231411][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:04:02.162251][error][231411][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:09:00.487427][debug][234482][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:09:00.487493][debug][234482][Context.cpp:49] Config file version=1.1
+[03/18 15:09:00.487512][debug][234482][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:09:00.487519][info][234482][Context.cpp:68] Context created with config: default config!
+[03/18 15:09:00.487539][info][234482][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:09:00.487547][debug][234482][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:09:00.487551][info][234482][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:09:00.488053][debug][234482][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:09:00.488644][debug][234482][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:09:00.488660][debug][234482][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:09:00.488667][debug][234482][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:09:00.488685][warning][234482][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:09:00.488736][info][234482][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:09:00.488752][debug][234482][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:09:00.488757][debug][234482][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:09:00.488763][info][234482][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:09:00.488770][info][234482][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:09:00.488775][debug][234482][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:09:00.500682][error][234482][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:09:34.823135][debug][234822][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:09:34.823210][debug][234822][Context.cpp:49] Config file version=1.1
+[03/18 15:09:34.823234][debug][234822][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:09:34.823241][info][234822][Context.cpp:68] Context created with config: default config!
+[03/18 15:09:34.823265][info][234822][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:09:34.823274][debug][234822][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:09:34.823279][info][234822][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:09:34.823980][debug][234822][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:09:34.824283][debug][234822][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:09:34.824297][debug][234822][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:09:34.824304][debug][234822][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:09:34.824323][warning][234822][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:09:34.824384][info][234822][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:09:34.824397][debug][234822][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:09:34.824403][debug][234822][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:09:34.824409][info][234822][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:09:34.824415][info][234822][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:09:34.824420][debug][234822][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:09:34.836831][error][234822][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:10:29.240845][debug][235501][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:10:29.240908][debug][235501][Context.cpp:49] Config file version=1.1
+[03/18 15:10:29.240940][debug][235501][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:10:29.240950][info][235501][Context.cpp:68] Context created with config: default config!
+[03/18 15:10:29.240966][info][235501][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:10:29.240974][debug][235501][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:10:29.240978][info][235501][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:10:29.241451][debug][235501][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:10:29.241913][debug][235501][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:10:29.241924][debug][235501][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:10:29.241930][debug][235501][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:10:29.241947][warning][235501][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:10:29.241997][info][235501][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:10:29.242009][debug][235501][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:10:29.242022][debug][235501][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:10:29.242028][info][235501][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:10:29.242035][info][235501][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:10:29.242040][debug][235501][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:10:29.255953][error][235501][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:12:41.589445][debug][237100][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:12:41.589512][debug][237100][Context.cpp:49] Config file version=1.1
+[03/18 15:12:41.589532][debug][237100][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:12:41.589539][info][237100][Context.cpp:68] Context created with config: default config!
+[03/18 15:12:41.589556][info][237100][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:12:41.589564][debug][237100][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:12:41.589568][info][237100][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:12:41.590083][debug][237100][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:12:41.590396][debug][237100][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:12:41.590410][debug][237100][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:12:41.590416][debug][237100][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:12:41.590433][warning][237100][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:12:41.590487][info][237100][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:12:41.590500][debug][237100][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:12:41.590505][debug][237100][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:12:41.590510][info][237100][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:12:41.590517][info][237100][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:12:41.590522][debug][237100][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:12:41.605495][error][237100][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:14:34.016405][debug][238313][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:14:34.016511][debug][238313][Context.cpp:49] Config file version=1.1
+[03/18 15:14:34.016545][debug][238313][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:14:34.016552][info][238313][Context.cpp:68] Context created with config: default config!
+[03/18 15:14:34.016574][info][238313][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:14:34.016583][debug][238313][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:14:34.016586][info][238313][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:14:34.017178][debug][238313][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:14:34.018583][debug][238313][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:14:34.018655][debug][238313][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:14:34.018667][debug][238313][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:14:34.018713][warning][238313][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:14:34.018922][info][238313][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:14:34.018959][debug][238313][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:14:34.018968][debug][238313][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:14:34.018980][info][238313][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:14:34.018990][info][238313][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:14:34.018996][debug][238313][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:14:34.039465][error][238313][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!
+[03/18 15:15:26.912734][debug][238792][Context.cpp:30] Context creating, work_dir=/home/hoang/Documents/SentientFollowAI
+[03/18 15:15:26.912796][debug][238792][Context.cpp:49] Config file version=1.1
+[03/18 15:15:26.912814][debug][238792][FrameBufferManager.cpp:23] Max global frame buffer size updated! size=2048.000MB
+[03/18 15:15:26.912821][info][238792][Context.cpp:68] Context created with config: default config!
+[03/18 15:15:26.912837][info][238792][Context.cpp:73] Work directory=/home/hoang/Documents/SentientFollowAI, SDK version=v1.10.28-20251020-df895dc
+[03/18 15:15:26.912845][debug][238792][DeviceManager.cpp:30] DeviceManager init ...
+[03/18 15:15:26.912848][info][238792][LinuxPal.cpp:32] createObPal: create LinuxPal!
+[03/18 15:15:26.913339][debug][238792][DeviceManager.cpp:34] Enable USB Device Enumerator ...
+[03/18 15:15:26.913782][debug][238792][EnumeratorLibusb.cpp:324] queryDevicesInfo done!
+[03/18 15:15:26.913797][debug][238792][UsbDeviceEnumerator.cpp:163] Current usb device port list:
+[03/18 15:15:26.913803][debug][238792][UsbDeviceEnumerator.cpp:166]  - 1-10-8.0 | Orbbec(R) Astra(TM) 3D Camera(F) Depth
+[03/18 15:15:26.913819][warning][238792][OpenNIDeviceInfo.cpp:126] New openni device matched.
+[03/18 15:15:26.913875][info][238792][LinuxPal.cpp:166] Create PollingDeviceWatcher!
+[03/18 15:15:26.913887][debug][238792][UsbDeviceEnumerator.cpp:71] Found 1 device(s):
+[03/18 15:15:26.913893][debug][238792][UsbDeviceEnumerator.cpp:74]   - Name: Astra mini S, PID: 0x0407, SN/ID: , connection: USB2.0
+[03/18 15:15:26.913899][info][238792][DeviceManager.cpp:15] Current found device(s): (1)
+[03/18 15:15:26.913905][info][238792][DeviceManager.cpp:24] 	- Name: Astra mini S, PID: 0x0407, SN/ID: , Connection: USB2.0
+[03/18 15:15:26.913910][debug][238792][DeviceManager.cpp:52] DeviceManager construct done!
+[03/18 15:15:26.924987][error][238792][OpenNIHostProtocol.cpp:36] Host Protocol support sub cmd datasize error!

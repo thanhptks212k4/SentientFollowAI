@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Hybrid Predictive Visual Servoing Controller
+Hybrid Predictive Visual Servoing Controller with Virtual Depth Radar
 
 Advanced person-following robot controller with:
 - Signal Conditioning & State Estimation (EMA Filter + Target Prediction)
 - Advanced PID Controller (Anti-windup + Adaptive Gains)  
 - Motion Profile & Safety (Smooth Pursuit + Acceleration Ramping)
 - Recovery & Lost Target Logic (Inertial Navigation)
+- Virtual Depth Radar (Multi-zone Obstacle Detection & Avoidance)
 """
 
 import time
@@ -23,17 +24,31 @@ from config import (
     BACKWARD_DISTANCE_THRESHOLD
 )
 
-# Import new PID parameters if available
+# Import new radar parameters if available
 try:
-    from config import KI_LINEAR, KD_LINEAR, KI_ANGULAR, KD_ANGULAR, MAX_ACCEL, EMA_ALPHA
+    from config import (
+        KI_LINEAR, KD_LINEAR, KI_ANGULAR, KD_ANGULAR, MAX_ACCEL, EMA_ALPHA,
+        OBSTACLE_THRESHOLD_SIDE, OBSTACLE_THRESHOLD_FRONT, NOISE_THRESHOLD,
+        RADAR_SCAN_TOP, RADAR_SCAN_BOTTOM, RADAR_LEFT_BOUNDARY, RADAR_RIGHT_BOUNDARY,
+        RADAR_EMA_ALPHA
+    )
 except ImportError:
     # Default values if not in config
     KI_LINEAR = 0.0001
     KD_LINEAR = 0.002
     KI_ANGULAR = 0.0002
     KD_ANGULAR = 0.005
-    MAX_ACCEL = 0.1
+    MAX_ACCEL = 2.0
     EMA_ALPHA = 0.2
+    # Radar defaults
+    OBSTACLE_THRESHOLD_SIDE = 500
+    OBSTACLE_THRESHOLD_FRONT = 400
+    NOISE_THRESHOLD = 100
+    RADAR_SCAN_TOP = 0.40
+    RADAR_SCAN_BOTTOM = 0.60
+    RADAR_LEFT_BOUNDARY = 0.33
+    RADAR_RIGHT_BOUNDARY = 0.67
+    RADAR_EMA_ALPHA = 0.3
 
 @dataclass
 class ControllerState:
@@ -68,15 +83,43 @@ class ControllerState:
     last_update_time: float = 0.0
 
 
+@dataclass
+class RadarState:
+    """Virtual Depth Radar state for obstacle detection"""
+    # Current depth readings (mm)
+    min_depth_left: float = float('inf')
+    min_depth_center: float = float('inf')
+    min_depth_right: float = float('inf')
+    
+    # EMA filtered depths for smoothing
+    filtered_depth_left: float = float('inf')
+    filtered_depth_center: float = float('inf')
+    filtered_depth_right: float = float('inf')
+    
+    # Obstacle detection flags
+    obstacle_left: bool = False
+    obstacle_center: bool = False
+    obstacle_right: bool = False
+    
+    # Override states
+    override_active: bool = False
+    override_reason: str = ""
+    
+    # Statistics
+    total_scans: int = 0
+    obstacle_detections: int = 0
+
+
 class VisualServoingDecisionMaker:
     """
-    Hybrid Predictive Controller for person-following robot
+    Hybrid Predictive Controller with Virtual Depth Radar for person-following robot
     
     Combines:
     1. Signal Conditioning: EMA filter + Target prediction
     2. Advanced PID: Full PID with anti-windup and adaptive gains
     3. Motion Profile: Smooth pursuit + acceleration ramping
     4. Recovery Logic: Inertial navigation when target is lost
+    5. Virtual Depth Radar: Multi-zone obstacle detection and avoidance
     """
     
     def __init__(self, uart_port='/dev/ttyAMA0', uart_baudrate=115200):
@@ -123,6 +166,21 @@ class VisualServoingDecisionMaker:
         # Controller state
         self.state = ControllerState()
         
+        # Virtual Depth Radar state
+        self.radar_state = RadarState()
+        
+        # Radar configuration
+        self.radar_ema_alpha = RADAR_EMA_ALPHA
+        self.obstacle_threshold_side = OBSTACLE_THRESHOLD_SIDE
+        self.obstacle_threshold_front = OBSTACLE_THRESHOLD_FRONT
+        self.noise_threshold = NOISE_THRESHOLD
+        
+        # Radar scanning regions (calculated once)
+        self.radar_scan_top = int(CAMERA_HEIGHT * RADAR_SCAN_TOP)
+        self.radar_scan_bottom = int(CAMERA_HEIGHT * RADAR_SCAN_BOTTOM)
+        self.radar_left_boundary = int(CAMERA_WIDTH * RADAR_LEFT_BOUNDARY)
+        self.radar_right_boundary = int(CAMERA_WIDTH * RADAR_RIGHT_BOUNDARY)
+        
         # Legacy compatibility
         self.last_command = "STOP"
         self.decision_count = 0
@@ -141,7 +199,13 @@ class VisualServoingDecisionMaker:
             'avg_distance_error': 0.0,
             'pid_calls': 0,
             'target_lost_count': 0,
-            'recovery_attempts': 0
+            'recovery_attempts': 0,
+            # Radar statistics
+            'radar_scans': 0,
+            'obstacle_detections': 0,
+            'override_left': 0,
+            'override_right': 0,
+            'emergency_stops': 0
         }
         
         # UART connection
@@ -149,7 +213,7 @@ class VisualServoingDecisionMaker:
         self.uart_baudrate = uart_baudrate
         self.serial_conn = self._init_uart()
         
-        print("Hybrid Predictive Controller initialized")
+        print("Hybrid Predictive Controller with Virtual Depth Radar initialized")
     
     def _init_uart(self) -> Optional[serial.Serial]:
         """
@@ -351,6 +415,164 @@ class VisualServoingDecisionMaker:
                 # Đã gửi stop command rồi, không gửi nữa
                 return None, None
     
+    def _scan_virtual_depth_radar(self, depth_frame: np.ndarray) -> None:
+        """
+        Virtual Depth Radar - Multi-zone obstacle detection
+        
+        Scans depth frame in 3 vertical zones (Left, Center, Right) within
+        the horizontal belt region (40%-60% height) to detect obstacles
+        at robot's torso level, avoiding floor and ceiling noise.
+        
+        Args:
+            depth_frame: Depth image array (height x width) in millimeters
+        """
+        if depth_frame is None or depth_frame.size == 0:
+            return
+        
+        self.radar_state.total_scans += 1
+        self.stats['radar_scans'] += 1
+        
+        # Get frame dimensions
+        height, width = depth_frame.shape[:2]
+        
+        # Calculate scanning region (40%-60% of height for torso level)
+        scan_top = int(height * RADAR_SCAN_TOP)
+        scan_bottom = int(height * RADAR_SCAN_BOTTOM)
+        
+        # Calculate zone boundaries
+        left_boundary = int(width * RADAR_LEFT_BOUNDARY)
+        right_boundary = int(width * RADAR_RIGHT_BOUNDARY)
+        
+        # Extract scanning region
+        scan_region = depth_frame[scan_top:scan_bottom, :]
+        
+        # Zone 1: Left (0% - 33%)
+        left_zone = scan_region[:, :left_boundary]
+        valid_left = left_zone[left_zone > self.noise_threshold]
+        self.radar_state.min_depth_left = np.min(valid_left) if len(valid_left) > 0 else float('inf')
+        
+        # Zone 2: Center (34% - 66%)
+        center_zone = scan_region[:, left_boundary:right_boundary]
+        valid_center = center_zone[center_zone > self.noise_threshold]
+        self.radar_state.min_depth_center = np.min(valid_center) if len(valid_center) > 0 else float('inf')
+        
+        # Zone 3: Right (67% - 100%)
+        right_zone = scan_region[:, right_boundary:]
+        valid_right = right_zone[right_zone > self.noise_threshold]
+        self.radar_state.min_depth_right = np.min(valid_right) if len(valid_right) > 0 else float('inf')
+        
+        # Apply EMA filtering for smooth readings
+        self._apply_radar_ema_filtering()
+        
+        # Update obstacle detection flags
+        self.radar_state.obstacle_left = self.radar_state.filtered_depth_left < self.obstacle_threshold_side
+        self.radar_state.obstacle_center = self.radar_state.filtered_depth_center < self.obstacle_threshold_front
+        self.radar_state.obstacle_right = self.radar_state.filtered_depth_right < self.obstacle_threshold_side
+        
+        # Count obstacle detections
+        if any([self.radar_state.obstacle_left, self.radar_state.obstacle_center, self.radar_state.obstacle_right]):
+            self.radar_state.obstacle_detections += 1
+            self.stats['obstacle_detections'] += 1
+    
+    def _apply_radar_ema_filtering(self) -> None:
+        """
+        Apply EMA filtering to radar depth readings for smooth obstacle detection
+        
+        Uses separate EMA coefficient for radar to balance responsiveness vs stability
+        """
+        alpha = self.radar_ema_alpha
+        
+        # Initialize filtered values on first reading
+        if self.radar_state.filtered_depth_left == float('inf'):
+            self.radar_state.filtered_depth_left = self.radar_state.min_depth_left
+            self.radar_state.filtered_depth_center = self.radar_state.min_depth_center
+            self.radar_state.filtered_depth_right = self.radar_state.min_depth_right
+        else:
+            # Apply EMA filtering
+            if self.radar_state.min_depth_left != float('inf'):
+                self.radar_state.filtered_depth_left = (
+                    alpha * self.radar_state.min_depth_left + 
+                    (1 - alpha) * self.radar_state.filtered_depth_left
+                )
+            
+            if self.radar_state.min_depth_center != float('inf'):
+                self.radar_state.filtered_depth_center = (
+                    alpha * self.radar_state.min_depth_center + 
+                    (1 - alpha) * self.radar_state.filtered_depth_center
+                )
+            
+            if self.radar_state.min_depth_right != float('inf'):
+                self.radar_state.filtered_depth_right = (
+                    alpha * self.radar_state.min_depth_right + 
+                    (1 - alpha) * self.radar_state.filtered_depth_right
+                )
+    
+    def _apply_obstacle_override_logic(self, control_v: float, control_w: float) -> Tuple[float, float]:
+        """
+        Apply obstacle avoidance override logic to control commands
+        
+        Priority system:
+        1. Emergency Stop: Front obstacle < 400mm → Stop immediately
+        2. Side Avoidance: Side obstacle < 500mm → Cancel turning, keep straight motion
+        3. Normal Control: No obstacles → Use original PID commands
+        
+        Args:
+            control_v: Original linear velocity from PID controller
+            control_w: Original angular velocity from PID controller
+            
+        Returns:
+            Tuple of (final_v, final_w) after obstacle override
+        """
+        override_v = control_v
+        override_w = control_w
+        override_reason = ""
+        
+        # Priority 1: Emergency Stop - Front collision imminent
+        if self.radar_state.obstacle_center:
+            override_v = 0.0
+            override_w = 0.0
+            override_reason = "EMERGENCY_STOP - Front obstacle detected"
+            self.stats['emergency_stops'] += 1
+            print(f"[RADAR] 🚨 PHANH KHẨN CẤP - Vật cản phía trước: {self.radar_state.filtered_depth_center:.0f}mm")
+        
+        # Priority 2: Side Obstacle Avoidance - Cancel turning to avoid collision
+        elif control_w > 0 and self.radar_state.obstacle_right:
+            # Turning right but right side blocked → Go straight
+            override_w = 0.0
+            override_reason = "RIGHT_SIDE_BLOCKED - Going straight to clear obstacle"
+            self.stats['override_right'] += 1
+            print(f"[RADAR] ⚠️ Vướng sườn PHẢI - Đang đi thẳng vượt vật cản ({self.radar_state.filtered_depth_right:.0f}mm)")
+        
+        elif control_w < 0 and self.radar_state.obstacle_left:
+            # Turning left but left side blocked → Go straight  
+            override_w = 0.0
+            override_reason = "LEFT_SIDE_BLOCKED - Going straight to clear obstacle"
+            self.stats['override_left'] += 1
+            print(f"[RADAR] ⚠️ Vướng sườn TRÁI - Đang đi thẳng vượt vật cản ({self.radar_state.filtered_depth_left:.0f}mm)")
+        
+        # Update override state
+        self.radar_state.override_active = override_reason != ""
+        self.radar_state.override_reason = override_reason
+        
+        return override_v, override_w
+    
+    def _get_radar_status_string(self) -> str:
+        """
+        Get radar status string for display
+        
+        Returns:
+            Formatted string with radar readings and obstacle status
+        """
+        left_status = "🔴" if self.radar_state.obstacle_left else "🟢"
+        center_status = "🔴" if self.radar_state.obstacle_center else "🟢"
+        right_status = "🔴" if self.radar_state.obstacle_right else "🟢"
+        
+        left_dist = f"{self.radar_state.filtered_depth_left:.0f}" if self.radar_state.filtered_depth_left != float('inf') else "∞"
+        center_dist = f"{self.radar_state.filtered_depth_center:.0f}" if self.radar_state.filtered_depth_center != float('inf') else "∞"
+        right_dist = f"{self.radar_state.filtered_depth_right:.0f}" if self.radar_state.filtered_depth_right != float('inf') else "∞"
+        
+        return f"L:{left_status}{left_dist} C:{center_status}{center_dist} R:{right_status}{right_dist}mm"
+    
     def send_to_esp32(self, v_speed: float, w_speed: float) -> None:
         """
         Gửi lệnh điều khiển xuống ESP32 qua UART
@@ -373,15 +595,17 @@ class VisualServoingDecisionMaker:
             print(f"[UART] ⚠️ Not connected - Skip: {msg.strip()}")
     
     def process_target(self, bbox: List[int], depth_mm: float, 
-                      frame_width: int, frame_height: int) -> str:
+                      frame_width: int, frame_height: int, depth_frame: Optional[np.ndarray] = None) -> str:
         """
-        Xử lý mục tiêu chính - Hybrid Predictive Control
+        Process target with Hybrid Predictive Control + Virtual Depth Radar
         
         Pipeline:
-        1. Signal Conditioning: EMA filter + Target prediction
-        2. Advanced PID: Full PID với adaptive gains
-        3. Motion Profile: Smooth pursuit + acceleration limiting
-        4. Safety: Cornering speed reduction
+        1. Virtual Depth Radar: Multi-zone obstacle detection
+        2. Signal Conditioning: EMA filter + Target prediction
+        3. Advanced PID: Full PID with adaptive gains
+        4. Motion Profile: Smooth pursuit + acceleration limiting
+        5. Obstacle Override: Safety-first collision avoidance
+        6. UART Communication: Send final commands to robot
         """
         self.stats['total_decisions'] += 1
         self.decision_count += 1
@@ -406,7 +630,11 @@ class VisualServoingDecisionMaker:
         # Reset lost target counter
         self.state.frames_without_target = 0
         
-        # 1. SIGNAL CONDITIONING & STATE ESTIMATION
+        # 1. VIRTUAL DEPTH RADAR - Multi-zone obstacle detection
+        if depth_frame is not None:
+            self._scan_virtual_depth_radar(depth_frame)
+        
+        # 2. SIGNAL CONDITIONING & STATE ESTIMATION
         x1, y1, x2, y2 = bbox
         current_target_x = (x1 + x2) // 2
         current_target_y = (y1 + y2) // 2
@@ -425,7 +653,7 @@ class VisualServoingDecisionMaker:
         self.last_center_error = filtered_error_x
         self.last_distance_error = filtered_error_z
         
-        # 2. ADVANCED PID CONTROLLER
+        # 3. ADVANCED PID CONTROLLER
         self.stats['pid_calls'] += 1
         
         # Adaptive gains dựa trên khoảng cách
@@ -447,7 +675,7 @@ class VisualServoingDecisionMaker:
         self.state.prev_error_x = filtered_error_x
         self.state.prev_error_z = filtered_error_z
         
-        # 3. MOTION PROFILE & SAFETY
+        # 4. MOTION PROFILE & SAFETY
         
         # Giới hạn vận tốc trong phạm vi cho phép
         target_v = np.clip(pid_v, -self.max_linear_speed, self.max_linear_speed)
@@ -472,6 +700,10 @@ class VisualServoingDecisionMaker:
         if abs(final_w) < self.min_speed:
             final_w = 0.0
         
+        # 5. VIRTUAL DEPTH RADAR - Obstacle Override Logic
+        if depth_frame is not None:
+            final_v, final_w = self._apply_obstacle_override_logic(final_v, final_w)
+        
         # Cập nhật state cho frame tiếp theo
         self.state.prev_v = final_v
         self.state.prev_w = final_w
@@ -491,23 +723,27 @@ class VisualServoingDecisionMaker:
         if final_v == 0 and final_w == 0:
             self.stats['stop_count'] += 1
         
-        # 4. UART COMMUNICATION
+        # 6. UART COMMUNICATION
         self.send_to_esp32(final_v, final_w)
         
-        # Tạo mô tả hành động cho legacy compatibility
-        if abs(final_v) > 0 and abs(final_w) > 0:
-            self.last_command = f"HYBRID(v={final_v:.3f}, w={final_w:.3f})"
+        # Tạo mô tả hành động với radar status
+        radar_status = self._get_radar_status_string() if depth_frame is not None else "RADAR:OFF"
+        
+        if self.radar_state.override_active:
+            self.last_command = f"RADAR_OVERRIDE({self.radar_state.override_reason}) - {radar_status}"
+        elif abs(final_v) > 0 and abs(final_w) > 0:
+            self.last_command = f"HYBRID(v={final_v:.3f}, w={final_w:.3f}) - {radar_status}"
         elif abs(final_v) > 0:
-            self.last_command = f"{'MOVE_FORWARD' if final_v > 0 else 'MOVE_BACKWARD'}({abs(final_v):.3f})"
+            self.last_command = f"{'MOVE_FORWARD' if final_v > 0 else 'MOVE_BACKWARD'}({abs(final_v):.3f}) - {radar_status}"
         elif abs(final_w) > 0:
-            self.last_command = f"{'TURN_RIGHT' if final_w > 0 else 'TURN_LEFT'}({abs(final_w):.3f})"
+            self.last_command = f"{'TURN_RIGHT' if final_w > 0 else 'TURN_LEFT'}({abs(final_w):.3f}) - {radar_status}"
         else:
-            self.last_command = "MAINTAIN_POSITION"
+            self.last_command = f"MAINTAIN_POSITION - {radar_status}"
         
         return self.last_command
     
     def get_statistics(self) -> Dict[str, Any]:
-        """Lấy thống kê hoạt động của bộ điều khiển"""
+        """Get controller operation statistics including radar data"""
         return {
             **self.stats,
             'last_command': self.last_command,
@@ -524,12 +760,28 @@ class VisualServoingDecisionMaker:
                 'prev_v': self.state.prev_v,
                 'prev_w': self.state.prev_w,
                 'frames_without_target': self.state.frames_without_target
+            },
+            'radar_state': {
+                'min_depth_left': self.radar_state.min_depth_left,
+                'min_depth_center': self.radar_state.min_depth_center,
+                'min_depth_right': self.radar_state.min_depth_right,
+                'filtered_depth_left': self.radar_state.filtered_depth_left,
+                'filtered_depth_center': self.radar_state.filtered_depth_center,
+                'filtered_depth_right': self.radar_state.filtered_depth_right,
+                'obstacle_left': self.radar_state.obstacle_left,
+                'obstacle_center': self.radar_state.obstacle_center,
+                'obstacle_right': self.radar_state.obstacle_right,
+                'override_active': self.radar_state.override_active,
+                'override_reason': self.radar_state.override_reason,
+                'total_scans': self.radar_state.total_scans,
+                'obstacle_detections': self.radar_state.obstacle_detections
             }
         }
     
     def reset_statistics(self) -> None:
-        """Reset tất cả thống kê"""
+        """Reset all statistics including radar data"""
         self.state = ControllerState()
+        self.radar_state = RadarState()
         self.stats = {
             'total_decisions': 0,
             'move_forward_count': 0,
@@ -541,7 +793,13 @@ class VisualServoingDecisionMaker:
             'avg_distance_error': 0.0,
             'pid_calls': 0,
             'target_lost_count': 0,
-            'recovery_attempts': 0
+            'recovery_attempts': 0,
+            # Radar statistics
+            'radar_scans': 0,
+            'obstacle_detections': 0,
+            'override_left': 0,
+            'override_right': 0,
+            'emergency_stops': 0
         }
         self.decision_count = 0
         self.last_center_error = 0.0
@@ -557,8 +815,13 @@ class VisualServoingDecisionMaker:
         self.last_command = "EMERGENCY_STOP"
     
     def stop(self) -> None:
-        """Legacy compatibility - dừng robot"""
+        """Legacy compatibility - stop robot and reset state"""
         self.emergency_stop()
+        # Reset lost target counter to prevent continuous recovery commands
+        self.state.frames_without_target = 0
+        # Reset radar override state
+        self.radar_state.override_active = False
+        self.radar_state.override_reason = ""
     
     def close(self) -> None:
         """Đóng kết nối và dọn dẹp tài nguyên"""
@@ -577,29 +840,46 @@ class VisualServoingDecisionMaker:
 
 # Legacy compatibility functions
 def test_visual_servoing():
-    """Test function cho compatibility"""
-    print("🧪 Testing Hybrid Predictive Controller")
+    """Test function for Hybrid Predictive Controller with Virtual Depth Radar"""
+    print("🧪 Testing Hybrid Predictive Controller with Virtual Depth Radar")
     
     controller = VisualServoingDecisionMaker(uart_port=None)
     
+    # Create mock depth frame for testing
+    mock_depth = np.full((240, 320), 2000, dtype=np.uint16)  # 2m background
+    # Add some obstacles
+    mock_depth[96:144, 0:106] = 450    # Left obstacle (close)
+    mock_depth[96:144, 107:213] = 350  # Center obstacle (very close)
+    mock_depth[96:144, 214:320] = 600  # Right obstacle (medium)
+    
     test_cases = [
-        ([300, 200, 400, 400], 2500, "Person far and centered"),
-        ([450, 200, 550, 400], 2000, "Person far and right"),
-        ([100, 200, 200, 400], 1800, "Person far and left"),
-        ([320, 200, 420, 400], 1500, "Person at safe distance"),
-        ([], 0, "Lost target test"),
+        ([300, 200, 400, 400], 2500, mock_depth, "Person far and centered with obstacles"),
+        ([450, 200, 550, 400], 2000, mock_depth, "Person far and right with obstacles"),
+        ([100, 200, 200, 400], 1800, mock_depth, "Person far and left with obstacles"),
+        ([320, 200, 420, 400], 1500, None, "Person at safe distance, no radar"),
+        ([], 0, mock_depth, "Lost target with obstacles"),
     ]
     
-    for i, (bbox, depth, description) in enumerate(test_cases, 1):
+    for i, (bbox, depth, depth_frame, description) in enumerate(test_cases, 1):
         print(f"\n🎯 Test {i}: {description}")
-        action = controller.process_target(bbox, depth, 640, 480)
+        action = controller.process_target(bbox, depth, 640, 480, depth_frame)
         print(f"Action: {action}")
+        
+        if depth_frame is not None:
+            radar_status = controller._get_radar_status_string()
+            print(f"Radar: {radar_status}")
+        
         time.sleep(0.1)
     
     stats = controller.get_statistics()
     print(f"\n📊 Final Statistics:")
     print(f"   Total decisions: {stats['total_decisions']}")
     print(f"   PID calls: {stats['pid_calls']}")
+    print(f"   Radar scans: {stats['radar_scans']}")
+    print(f"   Obstacle detections: {stats['obstacle_detections']}")
+    print(f"   Emergency stops: {stats['emergency_stops']}")
+    print(f"   Override left: {stats['override_left']}")
+    print(f"   Override right: {stats['override_right']}")
     
     controller.close()
 

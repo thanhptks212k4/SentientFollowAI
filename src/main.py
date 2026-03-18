@@ -240,9 +240,13 @@ def main():
                 if distance_m is not None:
                     distance_mm = distance_m * 1000.0
                     try:
-                        action = decision_maker.process_target(current_target['bbox'], distance_mm, frame.shape[1], frame.shape[0])
+                        action = decision_maker.process_target(current_target['bbox'], distance_mm, frame.shape[1], frame.shape[0], depth_frame)
                     except Exception as e:
+                        print(f"[DEBUG] process_target error: {e}")
                         decision_maker.stop()
+                else:
+                    # No valid depth data - stop the robot
+                    decision_maker.stop()
             else:
                 if locked_track_id is not None:
                     decision_maker.stop()
@@ -287,6 +291,12 @@ def main():
                 cv2.putText(frame, f"Nav: {decision_maker.last_command}", (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
                 y_offset += 20
                 cv2.putText(frame, f"Locked: ID-{locked_track_id}", (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 0, 255), 1)
+                
+                # Display radar status if available
+                if depth_frame is not None:
+                    y_offset += 20
+                    radar_status = decision_maker._get_radar_status_string()
+                    cv2.putText(frame, f"Radar: {radar_status}", (10, y_offset), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1)
             
             cv2.imshow(WINDOW_NAME, frame)
             
@@ -297,6 +307,8 @@ def main():
                 dm_stats = decision_maker.get_statistics()
                 print(f"Camera FPS: {camera_fps:.2f}, AI FPS: {fps:.2f}, Tracks: {len(all_tracks)}")
                 print(f"Commands: F={dm_stats['move_forward_count']}, B={dm_stats['move_backward_count']}, L={dm_stats['turn_left_count']}, R={dm_stats['turn_right_count']}")
+                print(f"Radar: Scans={dm_stats['radar_scans']}, Obstacles={dm_stats['obstacle_detections']}, Emergency={dm_stats['emergency_stops']}")
+                print(f"Overrides: Left={dm_stats['override_left']}, Right={dm_stats['override_right']}")
             
             gc_counter += 1
             if gc_counter >= GC_INTERVAL:
