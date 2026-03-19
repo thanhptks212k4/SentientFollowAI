@@ -260,20 +260,20 @@ CONF_THRESH = 0.65         # Detection confidence threshold (increased for accur
 IOU_THRESH = 0.25          # NMS IoU threshold
 
 # Control Parameters
-SAFE_DISTANCE_MM = 1500    # Target following distance (mm)
-MAX_LINEAR_SPEED = 0.8     # Maximum forward speed (m/s)
-MAX_ANGULAR_SPEED = 1.0    # Maximum rotation speed (rad/s)
+SAFE_DISTANCE_MM: Final[int] = 1500    # Target following distance (mm)
+MAX_LINEAR_SPEED = 0.449         # Maximum forward speed (m/s) - 449mm/s
+MAX_ANGULAR_SPEED = 6.283        # Maximum rotation speed (rad/s) - 2π rad/s
 
 # PID Controller Gains
-KP_LINEAR = 0.0008         # Proportional gain for distance
+KP_LINEAR = 0.0015         # Proportional gain for distance (adjusted for 449mm/s max)
 KI_LINEAR = 0.0001         # Integral gain for distance
 KD_LINEAR = 0.002          # Derivative gain for distance
-KP_ANGULAR = 0.015         # Proportional gain for angle
+KP_ANGULAR = 0.008         # Proportional gain for angle (adjusted for 2π rad/s max)
 KI_ANGULAR = 0.0002        # Integral gain for angle
 KD_ANGULAR = 0.005         # Derivative gain for angle
 
 # Advanced Control
-MAX_ACCEL = 2.0            # Maximum acceleration (m/s²)
+MAX_ACCEL = 1.0            # Maximum acceleration (m/s²) - adjusted for 449mm/s max
 EMA_ALPHA = 0.2            # EMA filter coefficient
 
 # Virtual Depth Radar Configuration
@@ -291,11 +291,15 @@ RADAR_EMA_ALPHA = 0.3           # EMA coefficient for depth smoothing
 
 ```
 Format: "v,w\n"
-- v: Linear velocity (-0.8 to +0.8 m/s)
-- w: Angular velocity (-1.0 to +1.0 rad/s)
+- v: Linear velocity (-0.449 to +0.449 m/s)
+  * Positive: Forward (Tiến)
+  * Negative: Backward (Lùi)
+- w: Angular velocity (-6.283 to +6.283 rad/s)
+  * Positive: Turn Left (Trái)  
+  * Negative: Turn Right (Phải)
 - Precision: 3 decimal places
 - Baudrate: 115200
-- Example: "0.250,-0.150\n"
+- Example: "0.225,-3.141\n" (Forward + Turn Right)
 ```
 
 ## 📡 Virtual Depth Radar System
@@ -564,7 +568,7 @@ integral = clamp(integral, -max_integral, +max_integral)
 
 #### Acceleration Limiting
 ```python
-max_delta_v = MAX_ACCEL × dt
+max_delta_v = MAX_ACCEL × dt  # 1.0 m/s² × 0.05s = 0.05 m/s per frame
 if |target_v - current_v| > max_delta_v:
     limited_v = current_v + sign(delta_v) × max_delta_v
 ```
@@ -572,7 +576,7 @@ if |target_v - current_v| > max_delta_v:
 #### Cornering Speed Reduction
 ```python
 if |angular_velocity| > threshold:
-    speed_reduction = |angular_velocity| / max_angular × 0.5
+    speed_reduction = |angular_velocity| / 6.283 × 0.5  # Based on 2π max
     linear_velocity *= (1 - speed_reduction)
 ```
 
@@ -656,16 +660,34 @@ void onDataRecv(const uint8_t *data, int len) {
 ```
 
 ### Motor Control Mapping
+
+#### **Velocity Direction Convention**
+| Parameter | Positive (+) | Negative (-) | Zero (0) |
+|-----------|-------------|-------------|----------|
+| **Linear Velocity (v)** | Tiến (Forward) | Lùi (Backward) | Dừng (Stop) |
+| **Angular Velocity (w)** | Trái (Turn Left) | Phải (Turn Right) | Thẳng (Straight) |
+
+#### **Speed Ranges**
 ```
 Linear Velocity (v):
-  +0.8 m/s → Forward PWM (255)
-  -0.8 m/s → Backward PWM (255)
-   0.0 m/s → Stop (0)
+  +0.449 m/s → Forward (Tiến) - Maximum speed
+  -0.449 m/s → Backward (Lùi) - Maximum speed
+   0.0 m/s → Stop
 
 Angular Velocity (w):
-  +1.0 rad/s → Turn Right
-  -1.0 rad/s → Turn Left
+  +6.283 rad/s → Turn Left (Trái) - 2π rad/s maximum
+  -6.283 rad/s → Turn Right (Phải) - 2π rad/s maximum
    0.0 rad/s → Straight
+```
+
+#### **Example Commands**
+```
+"0.225,0.000\n"    → Tiến với tốc độ 50% (Forward 50%)
+"-0.225,0.000\n"   → Lùi với tốc độ 50% (Backward 50%)
+"0.000,3.141\n"    → Xoay trái π rad/s (Turn Left π rad/s)
+"0.000,-3.141\n"   → Xoay phải π rad/s (Turn Right π rad/s)
+"0.225,1.571\n"    → Tiến + xoay trái (Forward + Turn Left)
+"0.000,0.000\n"    → Dừng hoàn toàn (Complete Stop)
 ```
 
 ## 📊 Performance Characteristics
@@ -676,6 +698,8 @@ Angular Velocity (w):
 - **UART Latency**: ~5ms (115200 baud)
 - **Radar Scanning**: ~0.06ms per scan (<0.1% CPU)
 - **Total Latency**: ~80ms (detection to motion)
+- **Max Linear Speed**: 449mm/s (0.449 m/s)
+- **Max Angular Speed**: 2π rad/s (6.283 rad/s)
 
 ### Accuracy Metrics
 - **Detection Range**: 0.5m - 5.0m

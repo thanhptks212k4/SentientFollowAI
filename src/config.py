@@ -56,7 +56,7 @@ def get_wait_ms() -> int:
 
 TRACK_THRESH: Final[float] = 0.50      # ByteTrack detection threshold
 TRACK_BUFFER: Final[int] = 60          # Track buffer size (frames)
-MATCH_THRESH: Final[float] = 0.35      # Track matching threshold
+MATCH_THRESH: Final[float] = 0.3      # Track matching threshold
 
 # =============================================================================
 # ROBOT CONTROL CONFIGURATION
@@ -71,17 +71,17 @@ DEADZONE_X: Final[int] = 15            # Horizontal deadzone (pixels)
 DEADZONE_Z: Final[int] = 100           # Distance deadzone (mm)
 
 # Speed Limits
-MAX_LINEAR_SPEED: Final[float] = 0.8   # Maximum forward/backward speed (m/s)
-MAX_ANGULAR_SPEED: Final[float] = 1.0  # Maximum rotation speed (rad/s)
-MIN_SPEED_THRESHOLD: Final[float] = 0.1  # Minimum speed to send (m/s)
+MAX_LINEAR_SPEED: Final[float] = 0.449   # Maximum forward/backward speed (m/s) - 449mm/s
+MAX_ANGULAR_SPEED: Final[float] = 6.283  # Maximum rotation speed (rad/s) - 2π rad/s
+MIN_SPEED_THRESHOLD: Final[float] = 0.05  # Minimum speed to send (m/s)
 
 # =============================================================================
 # PID CONTROLLER CONFIGURATION
 # =============================================================================
 
 # Basic PID Gains
-KP_LINEAR: Final[float] = 0.0008       # Proportional gain for distance control
-KP_ANGULAR: Final[float] = 0.015       # Proportional gain for angle control
+KP_LINEAR: Final[float] = 0.0015       # Proportional gain for distance control (adjusted for 449mm/s max)
+KP_ANGULAR: Final[float] = 0.008       # Proportional gain for angle control (adjusted for 2π rad/s max)
 
 # Advanced PID Gains (Hybrid Predictive Controller)
 KI_LINEAR: Final[float] = 0.0001       # Integral gain for distance control
@@ -90,7 +90,7 @@ KI_ANGULAR: Final[float] = 0.0002      # Integral gain for angle control
 KD_ANGULAR: Final[float] = 0.005       # Derivative gain for angle control
 
 # Motion Profile Parameters
-MAX_ACCEL: Final[float] = 2.0          # Maximum acceleration (m/s²)
+MAX_ACCEL: Final[float] = 1.0          # Maximum acceleration (m/s²) - adjusted for lower max speed
 EMA_ALPHA: Final[float] = 0.2          # EMA filter coefficient (0.0-1.0)
 
 # =============================================================================
