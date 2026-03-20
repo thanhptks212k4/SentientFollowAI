@@ -1,128 +1,70 @@
 #!/usr/bin/env python3
-"""
-System Configuration for SentientFollowAI
-
-This file contains all configurable parameters for the person-following robot system.
-Modify these values to tune system performance and behavior.
-"""
 
 import os
 from typing import Final
 
-# =============================================================================
-# MODEL AND PATHS CONFIGURATION
-# =============================================================================
-
 _current_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_current_dir)
 MODEL_PATH: Final[str] = os.path.join(_project_root, 'models/yolov8n_person_224_int8.onnx')
-
-# =============================================================================
-# CAMERA CONFIGURATION
-# =============================================================================
 
 CAMERA_ID: Final[int] = 0
 CAMERA_WIDTH: Final[int] = 320
 CAMERA_HEIGHT: Final[int] = 240
 CAMERA_FPS: Final[int] = 30
 
-# Force USB camera instead of Astra (for testing)
 FORCE_USB_CAMERA: Final[bool] = False
 
-# =============================================================================
-# AI MODEL CONFIGURATION
-# =============================================================================
+INPUT_SIZE: Final[int] = 224
+CONF_THRESH: Final[float] = 0.65
+IOU_THRESH: Final[float] = 0.25
+PERSON_CLASS: Final[int] = 0
 
-INPUT_SIZE: Final[int] = 224           # YOLOv8n input resolution
-CONF_THRESH: Final[float] = 0.65       # Detection confidence threshold (increased to reduce false positives)
-IOU_THRESH: Final[float] = 0.25        # NMS IoU threshold
-PERSON_CLASS: Final[int] = 0           # COCO person class ID
-
-# =============================================================================
-# SYSTEM PERFORMANCE CONFIGURATION
-# =============================================================================
-
-AI_FPS_TARGET: Final[int] = 20         # Target processing FPS
-WORK_MS: Final[int] = 25               # Processing time budget per frame
-GC_INTERVAL: Final[int] = 500          # Garbage collection interval (frames)
+AI_FPS_TARGET: Final[int] = 20
+WORK_MS: Final[int] = 25
+GC_INTERVAL: Final[int] = 500
 
 def get_wait_ms() -> int:
-    """Calculate OpenCV waitKey delay for target FPS"""
     return max(1, int(1000/AI_FPS_TARGET) - WORK_MS)
 
-# =============================================================================
-# TRACKING CONFIGURATION
-# =============================================================================
+TRACK_THRESH: Final[float] = 0.50
+TRACK_BUFFER: Final[int] = 60
+MATCH_THRESH: Final[float] = 0.35
 
-TRACK_THRESH: Final[float] = 0.50      # ByteTrack detection threshold
-TRACK_BUFFER: Final[int] = 60          # Track buffer size (frames)
-MATCH_THRESH: Final[float] = 0.3      # Track matching threshold
+SAFE_DISTANCE_MM: Final[int] = 1500
+BACKWARD_DISTANCE_THRESHOLD: Final[int] = 800
 
-# =============================================================================
-# ROBOT CONTROL CONFIGURATION
-# =============================================================================
+DEADZONE_X: Final[int] = 15
+DEADZONE_Z: Final[int] = 100
 
-# Distance Control
-SAFE_DISTANCE_MM: Final[int] = 1500    # Target following distance (mm)
-BACKWARD_DISTANCE_THRESHOLD: Final[int] = 800  # Distance to trigger backward motion
+MAX_LINEAR_SPEED: Final[float] = 0.449
+MAX_ANGULAR_SPEED: Final[float] = 6.283
+MIN_SPEED_THRESHOLD: Final[float] = 0.05
 
-# Dead Zones (prevent jittery motion)
-DEADZONE_X: Final[int] = 15            # Horizontal deadzone (pixels)
-DEADZONE_Z: Final[int] = 100           # Distance deadzone (mm)
+KP_LINEAR: Final[float] = 0.0015
+KP_ANGULAR: Final[float] = 0.008
 
-# Speed Limits
-MAX_LINEAR_SPEED: Final[float] = 0.449   # Maximum forward/backward speed (m/s) - 449mm/s
-MAX_ANGULAR_SPEED: Final[float] = 6.283  # Maximum rotation speed (rad/s) - 2π rad/s
-MIN_SPEED_THRESHOLD: Final[float] = 0.05  # Minimum speed to send (m/s)
+KI_LINEAR: Final[float] = 0.0001
+KD_LINEAR: Final[float] = 0.002
+KI_ANGULAR: Final[float] = 0.0002
+KD_ANGULAR: Final[float] = 0.005
 
-# =============================================================================
-# PID CONTROLLER CONFIGURATION
-# =============================================================================
+MAX_ACCEL: Final[float] = 1.0
+EMA_ALPHA: Final[float] = 0.2
 
-# Basic PID Gains
-KP_LINEAR: Final[float] = 0.0015       # Proportional gain for distance control (adjusted for 449mm/s max)
-KP_ANGULAR: Final[float] = 0.008       # Proportional gain for angle control (adjusted for 2π rad/s max)
+OBSTACLE_THRESHOLD_SIDE: Final[int] = 500
+OBSTACLE_THRESHOLD_FRONT: Final[int] = 400
+NOISE_THRESHOLD: Final[int] = 100
 
-# Advanced PID Gains (Hybrid Predictive Controller)
-KI_LINEAR: Final[float] = 0.0001       # Integral gain for distance control
-KD_LINEAR: Final[float] = 0.002        # Derivative gain for distance control
-KI_ANGULAR: Final[float] = 0.0002      # Integral gain for angle control
-KD_ANGULAR: Final[float] = 0.005       # Derivative gain for angle control
+RADAR_SCAN_TOP: Final[float] = 0.40
+RADAR_SCAN_BOTTOM: Final[float] = 0.60
+RADAR_LEFT_BOUNDARY: Final[float] = 0.33
+RADAR_RIGHT_BOUNDARY: Final[float] = 0.67
 
-# Motion Profile Parameters
-MAX_ACCEL: Final[float] = 1.0          # Maximum acceleration (m/s²) - adjusted for lower max speed
-EMA_ALPHA: Final[float] = 0.2          # EMA filter coefficient (0.0-1.0)
-
-# =============================================================================
-# VIRTUAL DEPTH RADAR CONFIGURATION
-# =============================================================================
-
-# Obstacle Detection Thresholds
-OBSTACLE_THRESHOLD_SIDE: Final[int] = 500    # Side obstacle threshold (mm)
-OBSTACLE_THRESHOLD_FRONT: Final[int] = 400   # Front obstacle threshold (mm)
-NOISE_THRESHOLD: Final[int] = 100            # Minimum valid depth (mm)
-
-# Radar Scanning Parameters
-RADAR_SCAN_TOP: Final[float] = 0.40          # Top of scan region (40% of height)
-RADAR_SCAN_BOTTOM: Final[float] = 0.60       # Bottom of scan region (60% of height)
-RADAR_LEFT_BOUNDARY: Final[float] = 0.33     # Left zone boundary (33% of width)
-RADAR_RIGHT_BOUNDARY: Final[float] = 0.67    # Right zone boundary (67% of width)
-
-# Radar EMA Filtering
-RADAR_EMA_ALPHA: Final[float] = 0.3          # EMA coefficient for depth smoothing
-
-# =============================================================================
-# DISPLAY CONFIGURATION
-# =============================================================================
+RADAR_EMA_ALPHA: Final[float] = 0.3
 
 WINDOW_NAME: Final[str] = 'Person Tracking'
 
-# =============================================================================
-# VALIDATION AND UTILITIES
-# =============================================================================
-
 def validate_config() -> bool:
-    """Validate configuration parameters"""
     errors = []
     
     if SAFE_DISTANCE_MM <= 0:
@@ -142,7 +84,6 @@ def validate_config() -> bool:
     if MAX_ACCEL <= 0:
         errors.append("MAX_ACCEL must be positive")
     
-    # Virtual Depth Radar validation
     if OBSTACLE_THRESHOLD_SIDE <= 0 or OBSTACLE_THRESHOLD_FRONT <= 0:
         errors.append("Obstacle thresholds must be positive")
     if NOISE_THRESHOLD <= 0:
@@ -162,7 +103,6 @@ def validate_config() -> bool:
     return True
 
 def print_config_summary() -> None:
-    """Print system configuration summary"""
     print("=== SentientFollowAI Configuration ===")
     print(f"Target FPS: {AI_FPS_TARGET}")
     print(f"Camera: {CAMERA_WIDTH}x{CAMERA_HEIGHT} @ {CAMERA_FPS}fps")
@@ -172,19 +112,13 @@ def print_config_summary() -> None:
     print(f"PID Gains: Kp_lin={KP_LINEAR}, Kp_ang={KP_ANGULAR}")
     print("=====================================")
 
-# =============================================================================
-# INITIALIZATION
-# =============================================================================
-
 if __name__ == "__main__":
-    # Standalone execution - validate and show config
     if validate_config():
         print_config_summary()
-        print("✅ Configuration is valid")
+        print("Configuration is valid")
     else:
-        print("❌ Configuration validation failed")
+        print("Configuration validation failed")
         exit(1)
 else:
-    # Module import - validate configuration
     if not validate_config():
         raise ValueError("Invalid configuration parameters")

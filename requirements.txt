@@ -1,23 +1,18 @@
-# SentientFollowAI - Python Dependencies
-# Core computer vision and AI libraries
 opencv-python>=4.8.0,<5.0.0
 numpy>=1.21.0,<2.0.0
 onnxruntime>=1.15.0,<2.0.0
 
-# Camera and depth sensing
 pyorbbecsdk>=1.5.0
 
-# System utilities
 psutil>=5.9.0
 pyserial>=3.5
 
-# AI model frameworks (for training/export)
 ultralytics>=8.0.0
 onnx>=1.12.0
 torch>=1.13.0
 torchvision>=0.14.0
 
-# Optional: For advanced features
-# scipy>=1.9.0              # Scientific computing
-# matplotlib>=3.5.0         # Plotting and visualization
-# pillow>=9.0.0             # Image processing utilities
+pyaudio>=0.2.11
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+numpy>=1.21.0
